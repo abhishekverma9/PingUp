@@ -158,7 +158,7 @@ app.use(express.json({ limit: "5mb" }));
 app.use(cookieParser());
 app.use(
   cors({
-    origin: "http://localhost:5173", 
+    origin: process.env.FRONTEND_URL, 
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'] 
   })
@@ -167,7 +167,7 @@ app.use(
 // ========================
 // 🗄️ Connect Databases & Cloudinary
 // ========================
-connectDB(); // This now tests the MySQL pool connection!
+connectDB();
 connectCloudinary();
 
 // ========================
