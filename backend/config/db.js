@@ -4,7 +4,13 @@ import fs from "fs";
 
 dotenv.config();
 
-// 1. Create the pool
+let caCert = process.env.AIVEN_CA_CERT; 
+if (caCert) { 
+  caCert = caCert.replace(/\\n/g, '\n');
+} else { 
+  caCert = fs.readFileSync('./ca.pem');
+}
+
 const pool = mysql.createPool({
   host: process.env.AIVEN_DB_HOST,
   port: process.env.AIVEN_DB_PORT,
@@ -13,7 +19,7 @@ const pool = mysql.createPool({
   database: process.env.AIVEN_DB_NAME,
   
   ssl: {
-    ca: fs.readFileSync('./ca.pem'),
+    ca: caCert,
     rejectUnauthorized: true,
   },
   timezone: '+00:00',
@@ -24,17 +30,15 @@ const pool = mysql.createPool({
   keepAliveInitialDelay: 0,
 });
 
-// 2. Create the connection test function
 const connectDB = async () => {
   try {
     const connection = await pool.getConnection();
     console.log("✅ Successfully connected to Aiven MySQL database!");
-    connection.release(); // Always release it back to the pool
+    connection.release(); 
   } catch (error) {
     console.error("❌ Failed to connect to Aiven MySQL:", error.message);
-    process.exit(1); // Stop the server if database connection fails
+    process.exit(1);
   }
 };
 
-// 3. Export both
 export { pool, connectDB };
