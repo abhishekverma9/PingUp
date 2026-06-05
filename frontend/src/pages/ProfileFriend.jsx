@@ -80,8 +80,8 @@ const ProfileHeader = ({ friendProfile, friendId, hasStory, onProfilePicClick, o
         </div>
       </div>
 
-      <div className="pt-6 px-8 pb-4">
-        <div className="flex justify-end">
+      <div className="pt-14 md:pt-16 px-4 md:px-8 pb-4">
+        <div className="flex justify-end -mt-10 md:-mt-12 mb-2">
           <button onClick={handleFollowToggle} className={getButtonClass()}>
             {getButtonText()}
           </button>
@@ -157,7 +157,7 @@ const FriendProfilePage = () => {
   );
 
   return (
-    <div className="bg-gray-100 dark:bg-gray-900 w-full h-screen overflow-y-scroll font-sans p-4 sm:p-8 transition-colors duration-200 relative">
+    <div className="bg-gray-50 dark:bg-gray-900 w-full h-screen overflow-y-scroll font-sans p-2 md:p-4 sm:p-8 transition-colors duration-200 relative">
       <div className="max-w-3xl mx-auto">
         <ProfileHeader 
           friendId={friendId} 

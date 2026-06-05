@@ -1,6 +1,7 @@
 import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
+import { FiUser } from "react-icons/fi";
 
 const UserCard = ({ user }) => {
   const navigate = useNavigate();
@@ -42,38 +43,34 @@ const UserCard = ({ user }) => {
 
   const getButtonClass = () => {
     if (followState === "follow")
-      return "w-full font-semibold py-1 px-2 md:py-2 md:px-4 rounded-lg transition-all duration-300 shadow-md bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90";
+      return "font-semibold py-1.5 px-4 text-xs md:text-sm rounded-full transition-all duration-300 shadow-sm bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 min-w-[80px]";
     if (followState === "pending")
-      return "w-full font-semibold py-1 px-2 md:py-2 md:px-4 rounded-lg transition-all duration-300 shadow-md bg-yellow-400 text-white hover:opacity-90";
+      return "font-semibold py-1.5 px-4 text-xs md:text-sm rounded-full transition-all duration-300 shadow-sm bg-yellow-400 text-white hover:opacity-90 min-w-[80px]";
     if (followState === "following")
-      return "w-full font-semibold py-1 px-2 md:py-2 md:px-4 rounded-lg transition-all duration-300 shadow-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600";
+      return "font-semibold py-1.5 px-4 text-xs md:text-sm rounded-full transition-all duration-300 shadow-sm bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 min-w-[80px]";
   };
-  const truncateBio = (bio = "") => {
-    const words = bio.split(" ");
-    return words.length > 16 ? words.slice(0, 16).join(" ") + "..." : bio;
-  };
+
   return (
-    <div className="bg-white dark:bg-gray-800 h-[270px] rounded-lg p-2 md:p-6 shadow-md flex flex-col items-center text-center transition-colors duration-200">
-      <img
-        src={user.profile}
-        alt={user.name}
-        className="md:w-20 md:h-20 w-12 h-12 rounded-full object-cover mb-2 md:mb-4 ring-2 ring-offset-2 ring-purple-200"
-      />
-      <p className="font-bold text-sm md:text-lg text-gray-900 dark:text-gray-100 truncate w-full px-1">{user.name}</p>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 truncate w-full px-1">{user.username}</p>
+    <div className="bg-white dark:bg-gray-800 rounded-xl p-3 md:p-4 shadow-sm hover:shadow-md flex items-center justify-between transition-all duration-300 hover:scale-[1.01] border border-gray-100 dark:border-gray-700 group">
+      <div 
+        className="flex items-center gap-3 md:gap-4 flex-1 min-w-0 cursor-pointer" 
+        onClick={() => navigate(`/friendprofile/${user._id}`)}
+      >
+        <img
+          src={user.profile}
+          alt={user.name}
+          className="w-12 h-12 md:w-14 md:h-14 rounded-full object-cover ring-2 ring-offset-2 ring-transparent group-hover:ring-purple-200 dark:group-hover:ring-purple-900 transition-all flex-shrink-0"
+        />
+        <div className="flex flex-col text-left overflow-hidden w-full">
+          <p className="font-bold text-sm md:text-base text-gray-900 dark:text-gray-100 truncate w-full">{user.name}</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 truncate w-full">@{user.username}</p>
+          {user.bio && <p className="text-xs text-gray-400 dark:text-gray-500 truncate w-full mt-0.5 hidden sm:block">{user.bio}</p>}
+        </div>
+      </div>
 
-      <div className="text-xs text-gray-600 dark:text-gray-300 mb-4">{truncateBio(user.bio)}</div>
-
-      <div className="flex text-xs md:text-sm justify-between gap-2 w-full mt-auto">
+      <div className="flex items-center gap-2 ml-3 flex-shrink-0">
         <button onClick={handleFollowToggle} className={getButtonClass()}>
           {getButtonText()}
-        </button>
-
-        <button
-          onClick={() => navigate(`/friendprofile/${user._id}`)}
-          className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-semibold py-1 px-2 md:py-2 md:px-4 rounded-lg hover:from-purple-600 hover:to-indigo-700 transition-all duration-300 shadow-md"
-        >
-          Profile
         </button>
       </div>
     </div>

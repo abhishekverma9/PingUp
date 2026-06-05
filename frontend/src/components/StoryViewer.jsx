@@ -79,20 +79,20 @@ const StoryViewer = ({
     totalStories?.length > 1 && currentIndex < totalStories.length - 1;
 
   return (
-    <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center font-sans">
+    <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center font-sans sm:p-4">
       <div
-        className="relative w-full max-w-[420px] h-[90vh] sm:h-[80vh] bg-black rounded-2xl shadow-2xl overflow-hidden"
+        className="relative w-full h-[100dvh] sm:max-w-[420px] sm:h-[85vh] bg-black sm:rounded-3xl shadow-2xl overflow-hidden"
         onClick={handleTap}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
       >
         {/* Progress Bars */}
-        <div className="absolute top-0 left-2 right-2 flex space-x-1 z-40">
+        <div className="absolute top-10 sm:top-3 left-2 right-2 flex space-x-1 z-40">
           {(totalStories || []).map((_, index) => (
             <div
               key={index}
-              className="flex-1 h-1 bg-neutral-700 rounded overflow-hidden"
+              className="flex-1 h-1 bg-white/30 rounded-full overflow-hidden"
             >
               <div
                 className="bg-white h-1 transition-all"
@@ -111,17 +111,17 @@ const StoryViewer = ({
 
         {/* Header - user info + time */}
         {user && (
-          <div className="absolute top-3 left-12 right-0 flex justify-between items-center px-4 z-50">
-            <span className="text-gray-300 text-xs">
+          <div className="absolute top-14 sm:top-6 left-14 sm:left-12 right-0 flex justify-between items-center px-4 z-50 pointer-events-none">
+            <span className="text-gray-300 text-xs drop-shadow-md font-semibold">
               {timeAgo(story.createdAt)}
             </span>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-sm pointer-events-auto">
               <img
                 src={user.profile}
                 alt={user.name}
-                className="w-8 h-8 rounded-full border-2 border-white/60"
+                className="w-8 h-8 rounded-full border-2 border-white/80"
               />
-              <span className="text-white font-semibold text-sm truncate">
+              <span className="text-white font-bold text-sm truncate drop-shadow-md">
                 {user.name}
               </span>
             </div>
@@ -129,12 +129,12 @@ const StoryViewer = ({
         )}
 
         {/* Close Button */}
-        <div className="absolute top-3 left-4 z-50">
+        <div className="absolute top-14 sm:top-6 left-4 z-50">
           <button
             onClick={onClose}
-            className="p-2 bg-gray-800 rounded-full hover:bg-gray-700 transition"
+            className="p-1.5 sm:p-2 bg-black/40 rounded-full hover:bg-black/60 transition backdrop-blur-sm"
           >
-            <FiChevronLeft className="w-6 h-6 text-white" />
+            <FiChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
           </button>
         </div>
 
@@ -261,48 +261,48 @@ const StoryViewer = ({
 
         {/* Bottom: Like + Comment */}
         {!isOwnStory ? (
-          <div className="absolute bottom-4 left-0 right-0 z-50 px-4 flex items-center gap-3">
+          <div className="absolute bottom-6 sm:bottom-4 left-0 right-0 z-50 px-4 sm:px-4 flex items-center gap-3">
             <button
               onClick={() => handleLikeStory(story._id, liked, setLiked)}
-              className="p-2 rounded-full bg-black/40 hover:bg-black/60 transition"
+              className="p-3 sm:p-2 rounded-full bg-black/40 hover:bg-black/60 transition backdrop-blur-sm"
             >
               {liked ? (
-                <AiFillHeart className="w-6 h-6 text-red-500" />
+                <AiFillHeart className="w-6 h-6 sm:w-6 sm:h-6 text-red-500" />
               ) : (
-                <AiOutlineHeart className="w-6 h-6 text-white" />
+                <AiOutlineHeart className="w-6 h-6 sm:w-6 sm:h-6 text-white" />
               )}
             </button>
 
-            <div className="flex flex-1 bg-gray-900 rounded-full overflow-hidden">
+            <div className="flex flex-1 bg-black/40 backdrop-blur-sm rounded-full overflow-hidden border border-white/10">
               <input
                 type="text"
                 value={comment}
                 onChange={(e) => setComment(e.target.value)}
-                placeholder="Add a comment..."
-                className="flex-1 px-4 py-2 bg-transparent text-white placeholder-gray-400 focus:outline-none"
+                placeholder="Send a message..."
+                className="flex-1 px-4 py-3 sm:py-2 bg-transparent text-white placeholder-gray-300 focus:outline-none text-sm"
               />
             </div>
             <button
               onClick={() => handleStoryComment(story._id, comment, setComment)}
-              className="p-2 transition bg-gray-800 hover:bg-gray-700 rounded-full text-white"
+              className="p-3 sm:p-2 transition bg-indigo-500 hover:bg-indigo-600 rounded-full text-white shadow-lg"
             >
-              <FiSend className="w-5 h-5" />
+              <FiSend className="w-5 h-5 sm:w-5 sm:h-5" />
             </button>
           </div>
         ) : (
-          <div className="absolute bottom-4 left-0 right-0 z-50 px-6 flex items-center justify-between">
+          <div className="absolute bottom-6 sm:bottom-4 left-0 right-0 z-50 px-6 sm:px-6 flex items-center justify-between">
             <button
               onClick={onViewers}
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-black/40 hover:bg-black/60 transition text-gray-300"
+              className="flex items-center justify-center w-12 h-12 sm:w-10 sm:h-10 rounded-full bg-black/40 hover:bg-black/60 transition text-gray-200 backdrop-blur-sm border border-white/10"
             >
-              <FiEye className="w-6 h-6" />
+              <FiEye className="w-6 h-6 sm:w-5 sm:h-5" />
             </button>
 
             <button
               onClick={onDelete}
-              className="flex items-center justify-center w-10 h-10 rounded-full bg-black/40 hover:bg-red-600 transition text-gray-300"
+              className="flex items-center justify-center w-12 h-12 sm:w-10 sm:h-10 rounded-full bg-black/40 hover:bg-red-600 transition text-red-400 hover:text-white backdrop-blur-sm border border-white/10"
             >
-              <FiTrash2 className="w-6 h-6" />
+              <FiTrash2 className="w-6 h-6 sm:w-5 sm:h-5" />
             </button>
           </div>
         )}

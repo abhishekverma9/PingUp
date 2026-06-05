@@ -40,13 +40,13 @@ const ProfileHeader = ({ user, onEdit, hasStory, onProfilePicClick, onFollowersC
         </div>
       </div>
 
-      <div className="pt-6 px-8 pb-4">
-        <div className="flex justify-end">
+      <div className="pt-14 md:pt-16 px-4 md:px-8 pb-4">
+        <div className="flex justify-end -mt-10 md:-mt-12 mb-2">
           <button
             onClick={onEdit}
-            className="flex items-center gap-2 border border-gray-300 dark:border-gray-600 rounded-full py-1 px-2 md:px-4 md:py-2 text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+            className="flex items-center gap-1.5 md:gap-2 border border-gray-300 dark:border-gray-600 rounded-full py-1.5 px-3 md:px-4 md:py-2 text-xs md:text-sm font-semibold text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 shadow-sm transition-colors"
           >
-            <FiEdit />
+            <FiEdit className="w-3.5 h-3.5 md:w-4 md:h-4" />
             <span>Edit</span>
           </button>
         </div>
@@ -110,7 +110,7 @@ const ProfilePage = () => {
   );
 
   return (
-    <div className="bg-gray-100 dark:bg-gray-900 w-full h-screen overflow-y-scroll font-sans p-4 sm:p-8 transition-colors duration-200 relative">
+    <div className="bg-gray-50 dark:bg-gray-900 w-full h-screen overflow-y-scroll font-sans p-2 md:p-4 sm:p-8 transition-colors duration-200 relative">
       <div className="max-w-3xl mx-auto">
         <ProfileHeader 
           user={profileData} 

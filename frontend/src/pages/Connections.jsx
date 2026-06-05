@@ -3,10 +3,15 @@ import { FiUsers, FiUserPlus, FiClock, FiLink, FiSearch } from "react-icons/fi";
 import UserCard from "../components/UserCard";
 import { AuthContext } from "../context/AuthContext";
 
-const StatCard = ({ title, value }) => (
-  <div className="bg-white dark:bg-gray-800 rounded-lg p-1 md:p-4 text-center shadow-md sm:w-full transition-colors duration-200">
-    <p className="text-2xl md:text-xl font-bold text-gray-800 dark:text-gray-100">{value}</p>
-    <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
+const StatCard = ({ title, value, icon }) => (
+  <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 md:p-6 shadow-sm hover:shadow-md flex items-center gap-4 transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:border-purple-200 dark:hover:border-purple-800 group">
+    <div className="p-3 bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-xl group-hover:scale-110 transition-transform">
+       {icon}
+    </div>
+    <div>
+      <p className="text-2xl font-black text-gray-800 dark:text-gray-100 leading-none">{value}</p>
+      <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mt-1">{title}</p>
+    </div>
   </div>
 );
 
@@ -92,14 +97,14 @@ const ConnectionsPage = () => {
             </p>
           </div>
           {/* Search Bar */}
-          <div className="relative w-full md:w-72">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <FiSearch className="text-gray-400" />
+          <div className="relative w-full md:w-80 group">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <FiSearch className="text-gray-400 group-focus-within:text-purple-500 transition-colors" />
             </div>
             <input
               type="text"
               placeholder="Search connections..."
-              className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 dark:text-gray-100 rounded-lg pl-10 pr-4 py-2 focus:outline-none focus:ring-2 focus:ring-purple-400"
+              className="w-full bg-white dark:bg-gray-800 border-none shadow-sm dark:shadow-none dark:bg-gray-800/80 ring-1 ring-gray-100 dark:ring-gray-700 dark:text-gray-100 rounded-2xl pl-12 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-400 transition-all font-medium"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -107,22 +112,22 @@ const ConnectionsPage = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 md:gap-4 mb-2 md:mb-6">
-          <StatCard title="Followers" value={usersData.followers.length} />
-          <StatCard title="Following" value={usersData.following.length} />
-          <StatCard title="Pending" value={usersData.pending.length} />
-          <StatCard title="Connections" value={usersData.connections.length} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-4 md:mb-8">
+          <StatCard title="Followers" value={usersData.followers.length} icon={<FiUsers className="w-6 h-6"/>} />
+          <StatCard title="Following" value={usersData.following.length} icon={<FiUserPlus className="w-6 h-6"/>} />
+          <StatCard title="Pending" value={usersData.pending.length} icon={<FiClock className="w-6 h-6"/>} />
+          <StatCard title="Connections" value={usersData.connections.length} icon={<FiLink className="w-6 h-6"/>} />
         </div>
 
         {/* Tabs */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-2 shadow-md mb-2 md:mb-6 w-full overflow-x-scroll flex justify-around items-center space-x-2 transition-colors duration-200">
+        <div className="bg-gray-200/50 dark:bg-gray-800/50 rounded-2xl p-1.5 mb-6 w-full overflow-x-auto flex justify-start items-center gap-1 no-scrollbar whitespace-nowrap transition-colors duration-200 backdrop-blur-sm">
           {Object.keys(TABS).map((tabKey) => (
             <button
               key={tabKey}
               onClick={() => setActiveTab(tabKey)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${activeTab === tabKey
-                  ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"
-                  : "text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700"
+              className={`flex-1 flex items-center justify-center min-w-[120px] gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 ${activeTab === tabKey
+                  ? "bg-white text-purple-600 shadow-sm dark:bg-gray-700 dark:text-purple-400 scale-[1.02]"
+                  : "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-white/50 dark:hover:bg-gray-700/50"
                 }`}
             >
               {TABS[tabKey].icon}
@@ -131,11 +136,17 @@ const ConnectionsPage = () => {
           ))}
         </div>
 
-        {/* User Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-6">
+        {/* User List */}
+        <div className="flex flex-col gap-3 pb-8">
           {currentUsers.map((user) => (
             <UserCard key={user._id} user={user} onFollowToggle={handleFollowToggle} />
           ))}
+          {currentUsers.length === 0 && (
+            <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
+               <FiUsers className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+               <p className="text-gray-500 dark:text-gray-400 font-medium text-lg">No users found</p>
+            </div>
+          )}
         </div>
       </div>
     </div>

@@ -419,8 +419,8 @@ const MessagesPage = () => {
         <div className={`w-2/3 flex flex-col ${isMobile ? "absolute w-full top-0 left-0 h-screen bg-white dark:bg-gray-900 z-10" : ""}`}>
           {selectedChat ? (
             <>
-              <div className="p-4 px-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl sticky top-0 z-20 shadow-sm">
-                <div className="flex items-center gap-4">
+              <div className="p-3 pr-16 md:px-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl sticky top-0 z-20 shadow-sm">
+                <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
                   {isMobile && (
                     <button
                       onClick={handleBack}
@@ -447,8 +447,8 @@ const MessagesPage = () => {
                         <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></span>
                       )}
                   </div>
-                  <div className="flex flex-col">
-                    <p className="font-extrabold text-gray-900 dark:text-gray-100 text-lg leading-tight">
+                  <div className="flex flex-col flex-1 min-w-0">
+                    <p className="font-extrabold text-gray-900 dark:text-gray-100 text-base md:text-lg leading-tight truncate">
                       {selectedChat.user1._id === user.userId
                         ? selectedChat.user2.name
                         : selectedChat.user1.name}
@@ -464,7 +464,7 @@ const MessagesPage = () => {
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-4 text-gray-500 dark:text-gray-400">
+                <div className="flex items-center gap-2 md:gap-4 text-gray-500 dark:text-gray-400 flex-shrink-0">
                   <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" onClick={() => setShowAudioCall(true)}>
                     <FiPhone className="w-5 h-5 text-gray-700 dark:text-gray-200" />
                   </div>
@@ -516,7 +516,7 @@ const MessagesPage = () => {
                             />
                           )}
                           <div
-                            className={`max-w-[85%] md:max-w-md p-4 shadow-sm ${isSender ? "rounded-2xl rounded-tr-sm bg-gradient-to-br from-indigo-500 to-purple-600 text-white" : "rounded-2xl rounded-tl-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-100 dark:border-gray-700"}`}
+                            className={`max-w-[85%] md:max-w-md py-2 px-3.5 md:py-2.5 md:px-4 shadow-sm ${isSender ? "rounded-2xl rounded-tr-sm bg-gradient-to-br from-indigo-500 to-purple-600 text-white" : "rounded-2xl rounded-tl-sm bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 border border-gray-100 dark:border-gray-700"}`}
                           >
                             {msg.mediaUrl && msg.mediaType === "image" && (
                               <img

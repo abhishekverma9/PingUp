@@ -305,7 +305,7 @@ const CreateStoryComposer = ({ onClose }) => {
     if (!img) return;
 
     const handleTouchMove = (e) => {
-      if (e.touches.length === 2) e.preventDefault();
+      e.preventDefault();
     };
 
     img.addEventListener("touchmove", handleTouchMove, { passive: false });
@@ -431,6 +431,34 @@ const CreateStoryComposer = ({ onClose }) => {
                 window.addEventListener("mousemove", onMouseMove);
                 window.addEventListener("mouseup", onMouseUp);
               }}
+              onTouchStart={(e) => {
+                e.stopPropagation();
+                const touch = e.touches[0];
+                const startX = touch.clientX - item.x;
+                const startY = touch.clientY - item.y;
+
+                const onTouchMove = (ev) => {
+                  ev.preventDefault(); // prevent scrolling
+                  const touchMove = ev.touches[0];
+                  setEmojis((prev) => {
+                    const newEmojis = [...prev];
+                    newEmojis[index] = {
+                      ...newEmojis[index],
+                      x: touchMove.clientX - startX,
+                      y: touchMove.clientY - startY,
+                    };
+                    return newEmojis;
+                  });
+                };
+
+                const onTouchEnd = () => {
+                  window.removeEventListener("touchmove", onTouchMove);
+                  window.removeEventListener("touchend", onTouchEnd);
+                };
+
+                window.addEventListener("touchmove", onTouchMove, { passive: false });
+                window.addEventListener("touchend", onTouchEnd);
+              }}
             >
               {item.emoji}
             </div>
@@ -478,6 +506,34 @@ const CreateStoryComposer = ({ onClose }) => {
 
                 window.addEventListener("mousemove", onMouseMove);
                 window.addEventListener("mouseup", onMouseUp);
+              }}
+              onTouchStart={(e) => {
+                e.stopPropagation();
+                const touch = e.touches[0];
+                const startX = touch.clientX - item.x;
+                const startY = touch.clientY - item.y;
+
+                const onTouchMove = (ev) => {
+                  ev.preventDefault(); // prevent scrolling
+                  const touchMove = ev.touches[0];
+                  setEmojis((prev) => {
+                    const newEmojis = [...prev];
+                    newEmojis[index] = {
+                      ...newEmojis[index],
+                      x: touchMove.clientX - startX,
+                      y: touchMove.clientY - startY,
+                    };
+                    return newEmojis;
+                  });
+                };
+
+                const onTouchEnd = () => {
+                  window.removeEventListener("touchmove", onTouchMove);
+                  window.removeEventListener("touchend", onTouchEnd);
+                };
+
+                window.addEventListener("touchmove", onTouchMove, { passive: false });
+                window.addEventListener("touchend", onTouchEnd);
               }}
             >
               {item.emoji}
@@ -635,6 +691,27 @@ const CreateStoryComposer = ({ onClose }) => {
           window.addEventListener("mousemove", onMouseMove);
           window.addEventListener("mouseup", onMouseUp);
         }}
+        onTouchStart={(e) => {
+          setIsDragging(true);
+          const touch = e.touches[0];
+          const startX = touch.clientX - textPosition.x;
+          const startY = touch.clientY - textPosition.y;
+
+          const onTouchMove = (ev) => {
+            ev.preventDefault();
+            const touchMove = ev.touches[0];
+            setTextPosition({ x: touchMove.clientX - startX, y: touchMove.clientY - startY });
+          };
+
+          const onTouchEnd = () => {
+            setIsDragging(false);
+            window.removeEventListener("touchmove", onTouchMove);
+            window.removeEventListener("touchend", onTouchEnd);
+          };
+
+          window.addEventListener("touchmove", onTouchMove, { passive: false });
+          window.addEventListener("touchend", onTouchEnd);
+        }}
       >
         <textarea
           value={caption}
@@ -680,6 +757,31 @@ const CreateStoryComposer = ({ onClose }) => {
 
             window.addEventListener("mousemove", onMouseMove);
             window.addEventListener("mouseup", onMouseUp);
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation();
+            setIsDraggingMusic(true);
+            const touch = e.touches[0];
+            const startX = touch.clientX - musicPosition.x;
+            const startY = touch.clientY - musicPosition.y;
+
+            const onTouchMove = (ev) => {
+              ev.preventDefault();
+              const touchMove = ev.touches[0];
+              setMusicPosition({
+                x: touchMove.clientX - startX,
+                y: touchMove.clientY - startY,
+              });
+            };
+
+            const onTouchEnd = () => {
+              setIsDraggingMusic(false);
+              window.removeEventListener("touchmove", onTouchMove);
+              window.removeEventListener("touchend", onTouchEnd);
+            };
+
+            window.addEventListener("touchmove", onTouchMove, { passive: false });
+            window.addEventListener("touchend", onTouchEnd);
           }}
           onMouseLeave={() => isDraggingMusic && setIsDraggingMusic(false)}
         >
