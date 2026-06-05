@@ -25,7 +25,22 @@ const App = () => {
   if (!authChecked) {
     return (
       <div>
-        <ToastContainer />
+        <ToastContainer
+          position="top-center"
+          autoClose={3000}
+          hideProgressBar
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="colored"
+        toastClassName={() => 
+          "relative flex p-1 min-h-10 rounded-full justify-between overflow-hidden cursor-pointer shadow-xl mt-4 mx-4 sm:mx-auto max-w-[90vw] sm:max-w-sm border border-white/20"
+        }
+        bodyClassName={() => "text-sm font-semibold block p-3 px-2 text-white"}
+        />
         {/* optional loader */}
         {/* <p style={{ textAlign: "center", marginTop: "2rem" }}>Loading...</p> */}
       </div>
@@ -33,7 +48,22 @@ const App = () => {
   }
   return (
     <div>
-      <ToastContainer />
+      <ToastContainer
+        position="top-center"
+        autoClose={3000}
+        hideProgressBar
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+        toastClassName={() => 
+          "relative flex p-1 min-h-10 rounded-full justify-between overflow-hidden cursor-pointer shadow-xl mt-4 mx-4 sm:mx-auto max-w-[90vw] sm:max-w-sm border border-white/20"
+        }
+        bodyClassName={() => "text-sm font-semibold block p-3 px-2 text-white"}
+      />
       <Routes>
         <Route element={<Layout />}>
           <Route path='/' element={token ? <Home /> : <Navigate to={'/login'} />} />

@@ -81,7 +81,7 @@ const StoryViewer = ({
   return (
     <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center font-sans sm:p-4">
       <div
-        className="relative w-full h-[100dvh] sm:max-w-[420px] sm:h-[85vh] bg-black sm:rounded-3xl shadow-2xl overflow-hidden"
+        className="relative w-full h-[90vh] sm:max-w-[420px] sm:h-[85vh] bg-black rounded-3xl shadow-2xl overflow-hidden mx-auto"
         onClick={handleTap}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -131,7 +131,7 @@ const StoryViewer = ({
         {/* Close Button */}
         <div className="absolute top-14 sm:top-6 left-4 z-50">
           <button
-            onClick={onClose}
+            onClick={(e) => { e.stopPropagation(); onClose(); }}
             className="p-1.5 sm:p-2 bg-black/40 rounded-full hover:bg-black/60 transition backdrop-blur-sm"
           >
             <FiChevronLeft className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
@@ -141,7 +141,7 @@ const StoryViewer = ({
         {/* Prev / Next Buttons */}
         {canShowPrev && (
           <button
-            onClick={onPrev}
+            onClick={(e) => { e.stopPropagation(); onPrev(); }}
             className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-2 z-50"
           >
             <FiChevronLeft className="w-6 h-6" />
@@ -149,7 +149,7 @@ const StoryViewer = ({
         )}
         {canShowNext && (
           <button
-            onClick={onNext}
+            onClick={(e) => { e.stopPropagation(); onNext(); }}
             className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-2 z-50"
           >
             <FiChevronRight className="w-6 h-6" />
@@ -261,7 +261,11 @@ const StoryViewer = ({
 
         {/* Bottom: Like + Comment */}
         {!isOwnStory ? (
-          <div className="absolute bottom-6 sm:bottom-4 left-0 right-0 z-50 px-4 sm:px-4 flex items-center gap-3">
+          <div 
+            className="absolute bottom-6 sm:bottom-4 left-0 right-0 z-50 px-4 sm:px-4 flex items-center gap-3"
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+          >
             <button
               onClick={() => handleLikeStory(story._id, liked, setLiked)}
               className="p-3 sm:p-2 rounded-full bg-black/40 hover:bg-black/60 transition backdrop-blur-sm"
@@ -280,6 +284,11 @@ const StoryViewer = ({
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Send a message..."
                 className="flex-1 px-4 py-3 sm:py-2 bg-transparent text-white placeholder-gray-300 focus:outline-none text-sm"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleStoryComment(story._id, comment, setComment);
+                  }
+                }}
               />
             </div>
             <button
@@ -290,7 +299,11 @@ const StoryViewer = ({
             </button>
           </div>
         ) : (
-          <div className="absolute bottom-6 sm:bottom-4 left-0 right-0 z-50 px-6 sm:px-6 flex items-center justify-between">
+          <div 
+            className="absolute bottom-6 sm:bottom-4 left-0 right-0 z-50 px-6 sm:px-6 flex items-center justify-between"
+            onClick={(e) => e.stopPropagation()}
+            onTouchStart={(e) => e.stopPropagation()}
+          >
             <button
               onClick={onViewers}
               className="flex items-center justify-center w-12 h-12 sm:w-10 sm:h-10 rounded-full bg-black/40 hover:bg-black/60 transition text-gray-200 backdrop-blur-sm border border-white/10"
