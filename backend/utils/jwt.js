@@ -16,7 +16,7 @@ const createRefreshToken = (id) => {
 const getRefreshCookieOptions = () => ({
   httpOnly: true,
   secure: process.env.NODE_ENV === "production", // true on production HTTPS
-  sameSite: "lax",
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // 'none' for cross-site in production, 'lax' for development
   path: "/api/user", // cookie only sent to this path
   maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 });

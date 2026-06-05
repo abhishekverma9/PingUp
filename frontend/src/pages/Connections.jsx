@@ -81,7 +81,7 @@ const ConnectionsPage = () => {
   const currentUsers = usersData[activeTab] || [];
 
   return (
-    <div className="lg:w-[80vw] w-[100vw] min-h-screen bg-gray-50 dark:bg-gray-900 font-sans p-4 md:p-6 transition-colors duration-200">
+    <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-900 font-sans p-4 md:p-6 transition-colors duration-200">
       <div className="max-w-9xl mx-auto">
         {/* Header */}
         <div className="mb-2 md:mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">

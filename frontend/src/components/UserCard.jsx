@@ -59,8 +59,8 @@ const UserCard = ({ user }) => {
         alt={user.name}
         className="md:w-20 md:h-20 w-12 h-12 rounded-full object-cover mb-2 md:mb-4 ring-2 ring-offset-2 ring-purple-200"
       />
-      <p className="font-bold text-sm md:text-lg text-gray-900 dark:text-gray-100">{user.name}</p>
-      <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{user.username}</p>
+      <p className="font-bold text-sm md:text-lg text-gray-900 dark:text-gray-100 truncate w-full px-1">{user.name}</p>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-2 truncate w-full px-1">{user.username}</p>
 
       <div className="text-xs text-gray-600 dark:text-gray-300 mb-4">{truncateBio(user.bio)}</div>
 

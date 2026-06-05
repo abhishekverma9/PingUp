@@ -58,7 +58,7 @@ const SuggestedWidget = ({ suggestions }) => {
 const RightSidebar = () => {
   const { discoverPeople } = useContext(AuthContext)
   return (
-    <div className="font-sans hidden sm:block h-screen overflow-y-scroll w-full max-w-sm mx-auto">
+    <div className="font-sans hidden lg:block h-screen overflow-y-scroll w-full max-w-sm mx-auto">
       <SponsoredWidget />
       <SuggestedWidget suggestions={discoverPeople} />
     </div>

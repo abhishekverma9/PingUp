@@ -15,7 +15,7 @@ const Sidebar = () => {
     { name: "Discover", icon: <FaCompass className="h-5 w-5" />, path: "/discover" },
     { name: "Profile", icon: <FaUserCircle className="h-5 w-5" />, path: "/profile" },
     { name: "Notifications", icon: <IoIosNotifications className="h-5 w-5" />, path: "/notifications" },
-    { name: "Settings", icon: <IoSettingsSharp className="h-5 w-5" />, path: "/settings", hideOnMobile: true },
+    { name: "Settings", icon: <IoSettingsSharp className="h-5 w-5" />, path: "/settings" },
   ];
   const navigate = useNavigate()
   const { profileData, logout } = useContext(AuthContext) 

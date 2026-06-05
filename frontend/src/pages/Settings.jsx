@@ -131,7 +131,7 @@ const Settings = () => {
     };
 
     return (
-        <div className="bg-gray-100 dark:bg-gray-900 lg:w-[70vw] w-[100vw] h-screen overflow-y-scroll font-sans p-4 sm:p-8 transition-colors duration-200 relative">
+        <div className="bg-gray-100 dark:bg-gray-900 w-full h-screen overflow-y-scroll font-sans p-4 sm:p-8 transition-colors duration-200 relative">
             <div className="max-w-4xl mx-auto space-y-6">
                 {/* HEADER */}
                 <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 sm:p-8 transition-colors duration-200">

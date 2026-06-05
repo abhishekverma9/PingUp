@@ -298,7 +298,7 @@ const MessagesPage = () => {
     console.log("All Users:", users);
   }, [users]);
   return (
-    <div className="lg:w-[80vw] w-[100vw] h-screen flex font-sans bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <div className="w-full h-screen flex font-sans bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       {(!isMobile || !isChatOpen) && (
         <div className="md:w-1/3 w-full border-r border-gray-100 dark:border-gray-800 flex flex-col relative bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl z-10">
           <h2 className="text-2xl font-extrabold p-6 border-b border-gray-100 dark:border-gray-800 dark:text-gray-100 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md sticky top-0 z-10">Messages</h2>

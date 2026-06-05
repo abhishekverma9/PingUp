@@ -16,7 +16,7 @@ const DiscoverPeoplePage = () => {
   }, [searchTerm]);
 
   return (
-    <div className="lg:w-[80vw] w-[100vw] min-h-screen bg-gray-50 dark:bg-gray-900 font-sans transition-colors duration-200">
+    <div className="w-full min-h-screen bg-gray-50 dark:bg-gray-900 font-sans transition-colors duration-200">
       <div className="max-w-7xl mx-auto p-2 md:p-6">
         {/* Header */}
         <div className="mb-2 md:mb-6">

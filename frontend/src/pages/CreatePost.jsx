@@ -53,7 +53,7 @@ const CreatePostPage = () => {
   };
 
   return (
-    <div className="lg:w-[50vw] w-[100vw] min-h-screen font-sans text-gray-800 dark:text-gray-200 transition-colors duration-200">
+    <div className="w-full lg:max-w-3xl min-h-screen font-sans text-gray-800 dark:text-gray-200 transition-colors duration-200 mx-auto">
       <div className="mx-auto p-4">
         {/* Header */}
         <div className="mb-4">

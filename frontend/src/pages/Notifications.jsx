@@ -81,7 +81,7 @@ const Notifications = () => {
         console.log("Notifications:", notifications);
     }, [notifications]);
     return (
-        <div className="w-[100vw] lg:w-[50vw] lg:ml-20 mx-auto lg:mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-md overflow-hidden min-h-[30vh] transition-colors duration-200">
+        <div className="w-full lg:max-w-2xl lg:ml-20 mx-auto lg:mt-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-md overflow-hidden min-h-[30vh] transition-colors duration-200">
             <header className="px-6 py-4 border-b border-gray-100 dark:border-gray-700 font-semibold text-lg text-gray-800 dark:text-gray-100">
                 Notifications
             </header>

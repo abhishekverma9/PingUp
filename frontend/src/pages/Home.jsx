@@ -5,7 +5,7 @@ import RightSection from '../components/RightSection'
 
 const Home = () => {
   return (
-    <div className='grid sm:grid-cols-2 w-[75vw]'>
+    <div className='flex flex-col lg:flex-row w-full max-w-7xl mx-auto gap-4'>
       <MiddleSection/>
       <RightSection/>
     </div>

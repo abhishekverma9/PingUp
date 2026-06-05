@@ -110,7 +110,7 @@ const ProfilePage = () => {
   );
 
   return (
-    <div className="bg-gray-100 dark:bg-gray-900 lg:w-[70vw] w-[100vw] h-screen overflow-y-scroll font-sans p-4 sm:p-8 transition-colors duration-200 relative">
+    <div className="bg-gray-100 dark:bg-gray-900 w-full h-screen overflow-y-scroll font-sans p-4 sm:p-8 transition-colors duration-200 relative">
       <div className="max-w-3xl mx-auto">
         <ProfileHeader 
           user={profileData} 
