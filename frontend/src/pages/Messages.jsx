@@ -301,7 +301,14 @@ const MessagesPage = () => {
     <div className="w-full h-[100dvh] flex font-sans bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
       {(!isMobile || !isChatOpen) && (
         <div className="md:w-1/3 w-full border-r border-gray-100 dark:border-gray-800 flex flex-col relative bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl z-10">
-          <h2 className="text-2xl font-extrabold p-6 border-b border-gray-100 dark:border-gray-800 dark:text-gray-100 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md sticky top-0 z-10">Messages</h2>
+          <h2 className="text-2xl font-extrabold p-6 border-b border-gray-100 dark:border-gray-800 dark:text-gray-100 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md sticky top-0 z-10 flex items-center gap-3">
+            {isMobile && (
+              <button onClick={() => window.location.href = '/'} className="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors mt-1">
+                <IoIosArrowBack size={26} />
+              </button>
+            )}
+            <span>Messages</span>
+          </h2>
           <div className="px-4 py-2">
             <input
               type="text"

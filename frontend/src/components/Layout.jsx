@@ -31,14 +31,16 @@ const Layout = () => {
       {!shouldHideSidebar && (
         <>
           {/* Hamburger for mobile */}
-          <div className="lg:hidden fixed top-2 right-2 z-50">
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="p-2 bg-white dark:bg-gray-800 dark:text-gray-100 rounded-md shadow-md focus:outline-none"
-            >
-              {isOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
-            </button>
-          </div>
+          {!location.pathname.startsWith('/messages') && (
+            <div className="lg:hidden fixed top-2 right-2 z-50">
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="p-2 bg-white dark:bg-gray-800 dark:text-gray-100 rounded-md shadow-md focus:outline-none"
+              >
+                {isOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
+              </button>
+            </div>
+          )}
 
           {/* Desktop Sidebar */}
           <div className="hidden lg:block w-72 border-r border-gray-200 dark:border-gray-800">

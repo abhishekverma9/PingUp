@@ -88,7 +88,7 @@ const StoryViewer = ({
         onTouchEnd={handleTouchEnd}
       >
         {/* Progress Bars */}
-        <div className="absolute top-10 sm:top-3 left-2 right-2 flex space-x-1 z-40">
+        <div className="absolute top-1.5 left-1 right-1 flex space-x-1 z-40">
           {(totalStories || []).map((_, index) => (
             <div
               key={index}
@@ -111,7 +111,7 @@ const StoryViewer = ({
 
         {/* Header - user info + time */}
         {user && (
-          <div className="absolute top-14 sm:top-6 left-14 sm:left-12 right-0 flex justify-between items-center px-4 z-50 pointer-events-none">
+          <div className="absolute top-4 left-[60px] right-2 flex justify-between items-center z-50 pointer-events-none">
             <span className="text-gray-300 text-xs drop-shadow-md font-semibold">
               {timeAgo(story.createdAt)}
             </span>
@@ -129,7 +129,7 @@ const StoryViewer = ({
         )}
 
         {/* Close Button */}
-        <div className="absolute top-14 sm:top-6 left-4 z-50">
+        <div className="absolute top-3 left-3 z-50">
           <button
             onClick={(e) => { e.stopPropagation(); onClose(); }}
             className="p-1.5 sm:p-2 bg-black/40 rounded-full hover:bg-black/60 transition backdrop-blur-sm"
