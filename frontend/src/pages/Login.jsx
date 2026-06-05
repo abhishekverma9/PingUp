@@ -72,7 +72,7 @@ const Login = () => {
           <h1 className="text-xl sm:text-2xl md:text-4xl max-w-md font-extrabold leading-tight text-gray-900 dark:text-gray-100">
             More than just friends <span className="text-blue-600 dark:text-blue-400">truly connect</span>
           </h1>
-          <p className="text-sm sm:text-lg text-gray-900 dark:text-gray-300 max-w-md">
+          <p className="text-sm sm:text-lg text-gray-900 dark:text-gray-300 max-w-md hidden sm:block">
             Connect with a global community on PingUp. Share, discover, and grow together.
           </p>
         </div>

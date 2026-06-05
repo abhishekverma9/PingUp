@@ -298,10 +298,10 @@ const MessagesPage = () => {
     console.log("All Users:", users);
   }, [users]);
   return (
-    <div className="w-full h-screen flex font-sans bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <div className="w-full h-[100dvh] flex font-sans bg-gray-50 dark:bg-gray-900 transition-colors duration-200 pb-16 md:pb-0">
       {(!isMobile || !isChatOpen) && (
         <div className="md:w-1/3 w-full border-r border-gray-100 dark:border-gray-800 flex flex-col relative bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl z-10">
-          <h2 className="text-2xl font-extrabold p-6 border-b border-gray-100 dark:border-gray-800 dark:text-gray-100 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md sticky top-0 z-10">Messages</h2>
+          <h2 className="text-2xl font-extrabold p-6 pt-12 md:pt-6 border-b border-gray-100 dark:border-gray-800 dark:text-gray-100 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md sticky top-0 z-10">Messages</h2>
           <div className="px-4 py-2">
             <input
               type="text"
@@ -416,10 +416,10 @@ const MessagesPage = () => {
         </div>
       )}
       {(!isMobile || isChatOpen) && (
-        <div className={`w-2/3 flex flex-col ${isMobile ? "absolute w-full top-0 left-0 h-screen bg-white dark:bg-gray-900 z-10" : ""}`}>
+        <div className={`w-2/3 flex flex-col ${isMobile ? "absolute w-full top-0 left-0 h-[100dvh] bg-white dark:bg-gray-900 z-50" : ""}`}>
           {selectedChat ? (
             <>
-              <div className="p-3 pr-16 md:px-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl sticky top-0 z-20 shadow-sm">
+              <div className="p-3 pr-4 md:px-6 pt-12 md:pt-3 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl sticky top-0 z-20 shadow-sm">
                 <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
                   {isMobile && (
                     <button
@@ -578,7 +578,7 @@ const MessagesPage = () => {
                   )}
                 </div>
               </div>
-              <div className="p-4 bg-transparent flex flex-col gap-2 relative z-20">
+              <div className="p-4 pb-8 md:pb-4 bg-transparent flex flex-col gap-2 relative z-20">
                 {/* File Preview */}
                 {file && (
                   <div className="relative rounded-xl self-start ml-4 bg-white dark:bg-gray-800 p-2 shadow-md border border-gray-100 dark:border-gray-700">
