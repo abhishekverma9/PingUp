@@ -2,10 +2,12 @@ import React, { useState, useContext, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
 import { FiUser } from "react-icons/fi";
+import StoryViewerContainer from "./StoryViewerContainer";
 
 const UserCard = ({ user }) => {
   const navigate = useNavigate();
-  const { sendFollowRequest, cancelFollowRequest, unfollowUser } = useContext(AuthContext);
+  const { sendFollowRequest, cancelFollowRequest, unfollowUser, stories } = useContext(AuthContext);
+  const [viewingStory, setViewingStory] = useState(null);
 
   // Local state to track button status
   // Initialize based on backend flags
@@ -43,7 +45,7 @@ const UserCard = ({ user }) => {
 
   const getButtonClass = () => {
     if (followState === "follow")
-      return "font-semibold py-1.5 px-4 text-xs md:text-sm rounded-full transition-all duration-300 shadow-sm bg-gradient-to-r from-purple-500 to-indigo-600 text-white hover:opacity-90 min-w-[80px]";
+      return "font-semibold py-1.5 px-4 text-xs md:text-sm rounded-full transition-all duration-300 bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:opacity-90 min-w-[80px] shadow-lg shadow-purple-200 dark:shadow-none";
     if (followState === "pending")
       return "font-semibold py-1.5 px-4 text-xs md:text-sm rounded-full transition-all duration-300 shadow-sm bg-yellow-400 text-white hover:opacity-90 min-w-[80px]";
     if (followState === "following")
@@ -56,11 +58,26 @@ const UserCard = ({ user }) => {
         className="flex items-center gap-3 md:gap-4 flex-1 min-w-0 cursor-pointer" 
         onClick={() => navigate(`/friendprofile/${user._id}`)}
       >
-        <img
-          src={user.profile}
-          alt={user.name}
-          className="w-12 h-12 md:w-14 md:h-14 rounded-full object-cover ring-2 ring-offset-2 ring-transparent group-hover:ring-purple-200 dark:group-hover:ring-purple-900 transition-all flex-shrink-0"
-        />
+        <div 
+          className={`rounded-full p-[2px] shrink-0 transition-transform duration-200 ${
+              stories?.some(group => (group.user.id || group.user._id) === user._id)
+                ? "bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500 hover:scale-105" 
+                : "bg-transparent"
+          }`}
+          onClick={(e) => {
+              const activeStoryGroup = stories?.find(group => (group.user.id || group.user._id) === user._id);
+              if (activeStoryGroup) {
+                  e.stopPropagation();
+                  setViewingStory(activeStoryGroup);
+              }
+          }}
+        >
+          <img
+            src={user.profile}
+            alt={user.name}
+            className="w-12 h-12 md:w-14 md:h-14 rounded-full object-cover border-2 border-white dark:border-gray-800 bg-white group-hover:ring-2 ring-transparent group-hover:ring-purple-200 dark:group-hover:ring-purple-900 transition-all"
+          />
+        </div>
         <div className="flex flex-col text-left overflow-hidden w-full">
           <p className="font-bold text-sm md:text-base text-gray-900 dark:text-gray-100 truncate w-full">{user.name}</p>
           <p className="text-xs text-gray-500 dark:text-gray-400 truncate w-full">@{user.username}</p>
@@ -73,6 +90,16 @@ const UserCard = ({ user }) => {
           {getButtonText()}
         </button>
       </div>
+
+      {/* Story Viewer Modal Overlay */}
+      {viewingStory && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50" onClick={(e) => e.stopPropagation()}>
+              <StoryViewerContainer 
+                  storiesData={[viewingStory]} 
+                  onClose={() => setViewingStory(null)} 
+              />
+          </div>
+      )}
     </div>
   );
 };

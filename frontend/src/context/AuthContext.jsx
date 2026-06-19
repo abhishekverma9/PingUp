@@ -19,6 +19,9 @@ const AuthContextProvider = (props) => {
     const [profileData, setProfileData] = useState({});
     const [friendProfile, setFriendProfile] = useState({});
     const [posts, setPosts] = useState([]);
+    const [isPostsLoading, setIsPostsLoading] = useState(true);
+    const [feedCursor, setFeedCursor] = useState(null);
+    const [hasMorePosts, setHasMorePosts] = useState(true);
     const [postsByMe, setPostsByMe] = useState([]);
     const [postsByFriend, setPostsByFriend] = useState([]);
     const [discoverPeople, setDiscoverPeople] = useState([]);
@@ -190,29 +193,43 @@ const AuthContextProvider = (props) => {
         }
     };
 
-    const getPostsByMe = async () => {
+    const getPostsByMe = async (cursor = null) => {
         try {
-            const { data } = await api.get("/api/post/get-post-by-me");
+            const queryParam = cursor ? `?cursor=${encodeURIComponent(cursor)}&limit=10` : `?limit=10`;
+            const { data } = await api.get(`/api/post/get-post-by-me${queryParam}`);
             if (data.success) {
-                setPostsByMe(data.posts);
-                getProfileData();
+                if (!cursor) setPostsByMe(data.posts);
+                else setPostsByMe(prev => {
+                    const newIds = new Set(data.posts.map(p => p.id || p._id));
+                    const filtered = prev.filter(p => !newIds.has(p.id || p._id));
+                    return [...filtered, ...data.posts];
+                });
+                if (!cursor) getProfileData();
+                return data.nextCursor;
             }
         } catch (error) {
             toast.error(error.message);
         }
+        return null;
     };
 
-    const getPostsByFriend = async (friendId) => {
+    const getPostsByFriend = async (friendId, cursor = null) => {
         try {
-            const { data } = await api.get(`/api/post/get-post-by-friend/${friendId}`);
+            const queryParam = cursor ? `?cursor=${encodeURIComponent(cursor)}&limit=10` : `?limit=10`;
+            const { data } = await api.get(`/api/post/get-post-by-friend/${friendId}${queryParam}`);
             if (data.success) {
-                setPostsByFriend(data.posts);
-                // If you want friend profile for this friend:
-                // getFriendProfileData(friendId);
+                if (!cursor) setPostsByFriend(data.posts);
+                else setPostsByFriend(prev => {
+                    const newIds = new Set(data.posts.map(p => p.id || p._id));
+                    const filtered = prev.filter(p => !newIds.has(p.id || p._id));
+                    return [...filtered, ...data.posts];
+                });
+                return data.nextCursor;
             }
         } catch (error) {
             toast.error(error.message);
         }
+        return null;
     };
 
     const deletePost = async (postId) => {
@@ -323,16 +340,31 @@ const AuthContextProvider = (props) => {
             return false;
         }
     };
-    const fetchFeedPosts = async () => {
+    const fetchFeedPosts = async (cursor = null) => {
+        if (!cursor) setIsPostsLoading(true);
         try {
-            const { data } = await api.get("/api/post/posts");
+            const queryParam = cursor ? `?cursor=${encodeURIComponent(cursor)}&limit=5` : `?limit=5`;
+            const { data } = await api.get(`/api/post/posts${queryParam}`);
             if (data.success) {
-                setPosts(data.data);
+                if (!cursor) {
+                    setPosts(data.data);
+                } else {
+                    // Avoid duplicates if same cursor is fetched twice
+                    setPosts(prev => {
+                        const newIds = new Set(data.data.map(p => p.id || p._id));
+                        const filteredPrev = prev.filter(p => !newIds.has(p.id || p._id));
+                        return [...filteredPrev, ...data.data];
+                    });
+                }
+                setHasMorePosts(data.nextCursor !== null);
+                setFeedCursor(data.nextCursor);
             } else {
                 toast.error(data.message);
             }
         } catch (error) {
             toast.error(error.message);
+        } finally {
+            if (!cursor) setIsPostsLoading(false);
         }
     };
     const fetchDiscoverPeople = async (search = "") => {
@@ -517,8 +549,11 @@ const AuthContextProvider = (props) => {
         cancelFollowRequest,
         connections,
         handleFollowAction,
-        fetchFeedPosts,
         posts,
+        isPostsLoading,
+        fetchFeedPosts,
+        feedCursor,
+        hasMorePosts,
         discoverPeople,
         stories,
         fetchAllStories,

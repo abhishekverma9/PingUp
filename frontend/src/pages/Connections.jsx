@@ -142,9 +142,17 @@ const ConnectionsPage = () => {
             <UserCard key={user._id} user={user} onFollowToggle={handleFollowToggle} />
           ))}
           {currentUsers.length === 0 && (
-            <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
-               <FiUsers className="w-12 h-12 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
-               <p className="text-gray-500 dark:text-gray-400 font-medium text-lg">No users found</p>
+            <div className="flex flex-col items-center justify-center py-20 px-4 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 transition-colors duration-200">
+                <div className="relative mb-6 group cursor-default">
+                    <div className="absolute inset-0 bg-gradient-to-tr from-teal-400 to-emerald-500 blur-2xl opacity-20 dark:opacity-30 rounded-full group-hover:opacity-40 transition-opacity duration-500 animate-pulse"></div>
+                    <div className="relative bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-gray-800 dark:to-gray-700 p-6 rounded-full shadow-inner border border-white/50 dark:border-gray-600">
+                        <FiUsers className="text-5xl text-emerald-500 dark:text-emerald-400 group-hover:scale-110 transition-transform duration-500 ease-out" />
+                    </div>
+                </div>
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 font-sans tracking-tight">No Users Found</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-center max-w-sm text-base leading-relaxed">
+                    Looks like it's quiet here. Try finding more people to build your network!
+                </p>
             </div>
           )}
         </div>

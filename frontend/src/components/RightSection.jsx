@@ -44,7 +44,7 @@ const SuggestedWidget = ({ suggestions }) => {
                 <p className="text-gray-500 dark:text-gray-400 text-xs">@{user.username}</p>
               </div>
             </div>
-            <button className="flex items-center gap-1 bg-blue-500 text-white text-xs font-semibold px-2.5 py-1 rounded hover:bg-blue-600 transition-colors">
+            <button className="flex items-center gap-1 bg-gradient-to-r from-purple-500 to-blue-500 text-white text-xs font-semibold px-2.5 py-1 rounded-full hover:opacity-90 shadow-sm shadow-purple-200 dark:shadow-none transition-all">
               <FaUserPlus className="w-3 h-3" /> Follow
             </button>
           </li>

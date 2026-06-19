@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useContext } from "react";
+import React, { useRef, useState, useEffect, useContext,useCallback } from "react";
 import {
   FiImage,
   FiSend,
@@ -16,6 +16,9 @@ import MusicPicker from "../components/MusicPicker";
 import axios from 'axios'
 import { AuthContext } from "../context/AuthContext";
 import { toast } from "react-toastify";
+import Cropper from 'react-easy-crop';
+import getCroppedImg from '../utils/cropImage';
+import { useNavigate } from 'react-router-dom';
 
 const topIcons = [
   <FiCrop key="crop" />,
@@ -37,10 +40,23 @@ const CreateStoryComposer = ({ onClose }) => {
   const composerRef = useRef(null); //new
   const emojiContainerRef = useRef(null);
   const fileInputRef = useRef(null)
-  const { token, backendUrl, fetchAllStories, api } = useContext(AuthContext)
+  const { token, backendUrl, fetchAllStories, api, users } = useContext(AuthContext)
+  const navigate = useNavigate();
   const [preview, setPreview] = useState(null);
+  const [mediaFile, setMediaFile] = useState(null);
   const [caption, setCaption] = useState("");
   const [bgColor, setBgColor] = useState("#ffffff");
+
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestionSearch, setSuggestionSearch] = useState("");
+  const [cursorPosition, setCursorPosition] = useState(0);
+
+  // Cropper State
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
+  const [showCropper, setShowCropper] = useState(false);
+  const [imageToCrop, setImageToCrop] = useState(null);
   const [showTextTool, setShowTextTool] = useState(false);
   const [showEmojiTool, setShowEmojiTool] = useState(false);
   const [emojis, setEmojis] = useState([]);
@@ -82,7 +98,57 @@ const CreateStoryComposer = ({ onClose }) => {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file) setPreview(URL.createObjectURL(file));
+    if (file) {
+      setPreview(URL.createObjectURL(file));
+      setMediaFile(file);
+    }
+  };
+
+  const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  const handleCropImage = async () => {
+    try {
+      const croppedImage = await getCroppedImg(imageToCrop, croppedAreaPixels);
+      setMediaFile(croppedImage);
+      setPreview(URL.createObjectURL(croppedImage));
+      setShowCropper(false);
+      setImageToCrop(null);
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to crop image");
+    }
+  };
+
+  const handleTextareaChange = (e) => {
+    const val = e.target.value;
+    setCaption(val);
+    const cursor = e.target.selectionStart;
+    setCursorPosition(cursor);
+
+    const textBeforeCursor = val.substring(0, cursor);
+    const lastAtPos = textBeforeCursor.lastIndexOf("@");
+    
+    if (lastAtPos !== -1 && (lastAtPos === 0 || textBeforeCursor[lastAtPos - 1] === " " || textBeforeCursor[lastAtPos - 1] === "\n")) {
+      const searchStr = textBeforeCursor.substring(lastAtPos + 1);
+      if (!searchStr.includes(" ") && !searchStr.includes("\n")) {
+        setSuggestionSearch(searchStr.toLowerCase());
+        setShowSuggestions(true);
+        return;
+      }
+    }
+    setShowSuggestions(false);
+  };
+
+  const handleSelectMention = (username) => {
+    const textBeforeCursor = caption.substring(0, cursorPosition);
+    const lastAtPos = textBeforeCursor.lastIndexOf("@");
+    const textAfterCursor = caption.substring(cursorPosition);
+    
+    const newTextBefore = textBeforeCursor.substring(0, lastAtPos + 1) + username + " ";
+    setCaption(newTextBefore + textAfterCursor);
+    setShowSuggestions(false);
   };
 
   const getDistance = (touch1, touch2) => {
@@ -183,10 +249,9 @@ const CreateStoryComposer = ({ onClose }) => {
         y: `${(y / ch) * 100}%`,
       });
 
-      if (fileInputRef.current?.files[0]) {
-        const file = fileInputRef.current.files[0];
-        formData.append("file", file);
-        formData.append("mediaType", file.type.startsWith("video") ? "video" : "image");
+      if (mediaFile) {
+        formData.append("file", mediaFile);
+        formData.append("mediaType", mediaFile.type.startsWith("video") ? "video" : "image");
 
         // 👇 2. Save the zoom & drag settings of the image!
         const imgSettings = {
@@ -246,6 +311,7 @@ const CreateStoryComposer = ({ onClose }) => {
         setTextPosition({ x: 100, y: 200 });
         setMusicPosition({ x: 100, y: 400 });
         if (fileInputRef.current) fileInputRef.current.value = null;
+        navigate("/");
       } else {
         toast.error(data.message);
       }
@@ -257,6 +323,7 @@ const CreateStoryComposer = ({ onClose }) => {
 
   const removePreview = () => {
     setPreview(null);
+    setMediaFile(null);
     if (fileInputRef.current) fileInputRef.current.value = null;
   };
   useEffect(() => {
@@ -289,9 +356,6 @@ const CreateStoryComposer = ({ onClose }) => {
       e.preventDefault(); // safe now
       const zoomAmount = e.deltaY < 0 ? 0.1 : -0.1;
       setScale((prev) => Math.min(Math.max(prev + zoomAmount, 1), 4));
-
-      const rect = img.getBoundingClientRect();
-      setOrigin({ x: e.clientX - rect.left, y: e.clientY - rect.top });
     };
 
     img.addEventListener("wheel", handleWheel, { passive: false });
@@ -333,7 +397,7 @@ const CreateStoryComposer = ({ onClose }) => {
               left: `${imagePosition.x}px`,
               top: `${imagePosition.y}px`,
               transform: `scale(${scale})`,
-              transformOrigin: `${origin.x}px ${origin.y}px`,
+              transformOrigin: `center center`,
               width: "100%",
               height: "100%",
               maxWidth: "100%",
@@ -368,8 +432,9 @@ const CreateStoryComposer = ({ onClose }) => {
                   y: touch.clientY - imagePosition.y,
                 });
               } else if (e.touches.length === 2) {
-                const d = getDistance(e.touches[0], e.touches[1]);
-                setTouchStartDistance(d);
+                // Pinch to zoom
+                const dist = getDistance(e.touches[0], e.touches[1]);
+                setTouchStartDistance(dist);
                 setInitialScale(scale);
               }
             }}
@@ -381,10 +446,9 @@ const CreateStoryComposer = ({ onClose }) => {
                   y: touch.clientY - imageDragStart.y,
                 });
               } else if (e.touches.length === 2 && touchStartDistance > 0) {
-                const newDistance = getDistance(e.touches[0], e.touches[1]);
-                const scaleFactor = newDistance / touchStartDistance;
-                const newScale = Math.min(Math.max(initialScale * scaleFactor, 1), 4);
-                setScale(newScale);
+                const newDist = getDistance(e.touches[0], e.touches[1]);
+                const newScale = initialScale * (newDist / touchStartDistance);
+                setScale(Math.min(Math.max(newScale, 1), 4));
               }
             }}
             onTouchEnd={() => {
@@ -559,7 +623,15 @@ const CreateStoryComposer = ({ onClose }) => {
           {/* Crop Tool */}
           <button
             className="p-2 rounded-full hover:bg-black/50"
-            onClick={() => alert("Crop tool active")}
+            onClick={() => {
+              if (mediaFile && mediaFile.type.startsWith("image/")) {
+                setImageToCrop(preview);
+                setShowCropper(true);
+              } else {
+                toast.error("Upload an image first to crop it");
+              }
+            }}
+            title="Crop Image"
           >
             <FiCrop className="w-5 h-5 text-white" />
           </button>
@@ -666,6 +738,78 @@ const CreateStoryComposer = ({ onClose }) => {
         )}
       </div>
 
+      {showColorTool && (
+        <div className="absolute top-20 right-4 z-[60] bg-white dark:bg-gray-800 p-2 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 flex flex-col gap-2">
+          {["#ffffff", "#000000", "#ff4757", "#2ed573", "#1e90ff", "#ffa502"].map((color) => (
+            <button
+              key={color}
+              onClick={() => {
+                setBgColor(color);
+                setShowColorTool(false);
+              }}
+              className={`w-8 h-8 rounded-full border-2 ${bgColor === color ? 'border-indigo-500 scale-110' : 'border-transparent'}`}
+              style={{ backgroundColor: color }}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Cropper Modal */}
+      {showCropper && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl w-full max-w-2xl h-[80vh] flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold dark:text-white">Crop Image</h3>
+              <button onClick={() => { setShowCropper(false); setImageToCrop(null); }} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+                <FiX size={24} />
+              </button>
+            </div>
+            
+            <div className="relative flex-1 w-full bg-gray-900 rounded-lg overflow-hidden">
+              <Cropper
+                image={imageToCrop}
+                crop={crop}
+                zoom={zoom}
+                aspect={9/16}
+                onCropChange={setCrop}
+                onCropComplete={onCropComplete}
+                onZoomChange={setZoom}
+              />
+            </div>
+            
+            <div className="mt-4 flex flex-col gap-4">
+              <div className="flex items-center gap-4 px-4">
+                <span className="text-sm font-medium dark:text-gray-300">Zoom</span>
+                <input
+                  type="range"
+                  value={zoom}
+                  min={1}
+                  max={3}
+                  step={0.1}
+                  aria-labelledby="Zoom"
+                  onChange={(e) => setZoom(e.target.value)}
+                  className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                />
+              </div>
+              
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={() => { setShowCropper(false); setImageToCrop(null); }}
+                  className="px-6 py-2 rounded-lg font-semibold text-gray-700 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCropImage}
+                  className="px-6 py-2 rounded-lg font-semibold text-white bg-gradient-to-r from-purple-500 to-indigo-600 hover:opacity-90 transition-opacity shadow-lg"
+                >
+                  Crop & Save
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Draggable Caption Input */}
       <div
@@ -715,7 +859,9 @@ const CreateStoryComposer = ({ onClose }) => {
       >
         <textarea
           value={caption}
-          onChange={(e) => setCaption(e.target.value)}
+          onChange={handleTextareaChange}
+          onClick={(e) => setCursorPosition(e.target.selectionStart)}
+          onKeyUp={(e) => setCursorPosition(e.target.selectionStart)}
           placeholder="Start typing..."
           className="w-64 text-center bg-transparent text-white placeholder-gray-300 text-2xl sm:text-3xl font-semibold resize-none focus:outline-none focus:ring-0 leading-tight transition-all duration-300"
           rows={2}
@@ -727,6 +873,37 @@ const CreateStoryComposer = ({ onClose }) => {
             textShadow: "0 2px 8px rgba(0,0,0,0.5)",
           }}
         />
+        {/* Autocomplete Dropdown */}
+        {showSuggestions && users && (
+          <div 
+            className="absolute z-50 w-64 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto left-0 top-full mt-2"
+            onMouseDown={(e) => e.stopPropagation()} // Prevent dragging when clicking dropdown
+            onTouchStart={(e) => e.stopPropagation()}
+          >
+            {users
+              .filter((u) => 
+                u.username.toLowerCase().includes(suggestionSearch) || 
+                u.name.toLowerCase().includes(suggestionSearch)
+              )
+              .slice(0, 10)
+              .map((u) => (
+                <div 
+                  key={u.id} 
+                  onClick={() => handleSelectMention(u.username)}
+                  className="flex items-center gap-3 p-3 hover:bg-purple-50 dark:hover:bg-gray-700 cursor-pointer transition-colors duration-150 text-left"
+                >
+                  <img src={u.profile_pic || u.profile} alt={u.username} className="w-8 h-8 rounded-full object-cover shadow-sm" />
+                  <div className="flex flex-col">
+                    <span className="font-semibold text-sm text-gray-900 dark:text-gray-100 leading-tight">{u.name}</span>
+                    <span className="text-xs text-gray-500 dark:text-gray-400">@{u.username}</span>
+                  </div>
+                </div>
+            ))}
+            {users.filter(u => u.username.toLowerCase().includes(suggestionSearch) || u.name.toLowerCase().includes(suggestionSearch)).length === 0 && (
+              <div className="p-3 text-sm text-gray-500 dark:text-gray-400 text-center">No users found</div>
+            )}
+          </div>
+        )}
       </div>
       {music && (
         <div
@@ -833,7 +1010,7 @@ const CreateStoryComposer = ({ onClose }) => {
             !caption.trim() && emojis.length === 0 && !preview && !music
           }
           className={`p-4 rounded-full transition ${caption.trim() || emojis.length > 0 || preview || music
-            ? "bg-blue-600 hover:bg-blue-700"
+            ? "bg-gradient-to-r from-purple-500 to-blue-500 shadow-lg shadow-purple-200 hover:opacity-90"
             : "bg-neutral-700 cursor-not-allowed"
             }`}
         >

@@ -7,7 +7,6 @@ import { createAccessToken, createRefreshToken, getRefreshCookieOptions } from "
 import { getDeviceNameFromUA, getLocationLabel } from "../config/utils.js";
 import catchAsync from "../utils/catchAsync.js";
 import crypto from 'crypto';
-import nodemailer from 'nodemailer';
 import { OAuth2Client } from 'google-auth-library';
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -396,14 +395,6 @@ const forgotPassword = catchAsync(async (req, res, next) => {
   // 6. Send the email
   const resetURL = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
-  const transporter = nodemailer.createTransport({
-    service: 'Gmail',
-    auth: {
-      user: process.env.EMAIL_USERNAME,
-      pass: process.env.EMAIL_PASSWORD,
-    },
-  });
-
   // 1. Keep the plain text version as a fallback for strict email clients
   const textMessage = `Forgot your password? Click here to reset it:\n\n${resetURL}\n\nIf you didn't request this, please ignore this email.`;
 
@@ -442,16 +433,41 @@ const forgotPassword = catchAsync(async (req, res, next) => {
   `;
 
   try {
-    await transporter.sendMail({
-      from: '"PingUp Support" <support@pingup.com>',
-      to: user.email,
-      subject: 'Password Reset Request - PingUp',
-      text: textMessage,
-      html: htmlMessage,
+    // Send email using Brevo's REST API (HTTPS avoids Render's SMTP block)
+    const brevoResponse = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'accept': 'application/json',
+        'api-key': process.env.BREVO_API_KEY,
+        'content-type': 'application/json'
+      },
+      body: JSON.stringify({
+        sender: {
+          name: "PingUp Support",
+          // Use your verified sender email in Brevo. Make sure this matches your Brevo account!
+          email: process.env.BREVO_SENDER_EMAIL || "support@pingup.com"
+        },
+        to: [
+          {
+            email: user.email,
+            name: user.name
+          }
+        ],
+        subject: "Password Reset Request - PingUp",
+        htmlContent: htmlMessage,
+        textContent: textMessage
+      })
     });
+
+    if (!brevoResponse.ok) {
+      const errorData = await brevoResponse.json();
+      console.error("Brevo API Error:", errorData);
+      throw new Error("Failed to send email via Brevo API");
+    }
 
     res.status(200).json({ success: true, message: 'Token sent to email!' });
   } catch (error) {
+    console.error("Forgot Password Error:", error);
     await User.clearResetToken(user.id);
     return res.status(500).json({ success: false, message: 'Error sending email. Please try again later.' });
   }
@@ -482,4 +498,13 @@ const resetPassword = catchAsync(async (req, res, next) => {
   res.status(200).json({ success: true, message: 'Password reset successfully. You can now log in.' });
 });
 
-export { loginUser, registerUser, getProfileData, updateProfileData, getFriendProfileData, allUsers, refreshAccessToken, logoutUser, logoutAllDevices, getSessions, updatePassword, revokeSession, forgotPassword, resetPassword,googleLogin };
+const getUserIdByUsername = catchAsync(async (req, res, next) => {
+  const { username } = req.params;
+  const user = await User.findByUsername(username);
+  if (!user) {
+    return res.json({ success: false, message: "User not found" });
+  }
+  res.json({ success: true, userId: user.id });
+});
+
+export { loginUser, registerUser, getProfileData, updateProfileData, getFriendProfileData, allUsers, refreshAccessToken, logoutUser, logoutAllDevices, getSessions, updatePassword, revokeSession, forgotPassword, resetPassword, googleLogin, getUserIdByUsername };

@@ -1,12 +1,13 @@
 import express from 'express'
 import authUser from '../middleware/auth.js'
 import upload from '../middleware/multer.js'
-import { addComment, createStory, deleteStory, getComments, getStories, getStoryLikes, getViewers, markStoryViewed, toggleLikeStory } from '../controllers/storyController.js'
-
+import { addComment, createStory, deleteStory, reshareStory, getComments, getStories, getStoryLikes, getViewers, markStoryViewed, toggleLikeStory } from '../controllers/storyController.js'
+import { postCreationLimiter } from '../middleware/rateLimiter.js'
 
 const storyRouter = express.Router()
 
-storyRouter.post('/create',authUser,upload.single("file"),createStory)
+storyRouter.post('/create', authUser, postCreationLimiter, upload.single("file"), createStory)
+storyRouter.post('/:storyId/reshare',authUser,reshareStory)
 storyRouter.get('/all',authUser,getStories)
 storyRouter.delete('/:storyId',authUser,deleteStory)
 

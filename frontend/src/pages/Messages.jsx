@@ -657,8 +657,17 @@ const MessagesPage = () => {
 
             </>
           ) : (
-            <div className="flex-grow flex items-center justify-center text-gray-500 text-xl">
-              Select a chat to start messaging
+            <div className="flex-grow flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-900 transition-colors duration-200 p-6">
+              <div className="relative mb-6 group cursor-default">
+                <div className="absolute inset-0 bg-gradient-to-tr from-blue-400 to-indigo-500 blur-2xl opacity-20 dark:opacity-30 rounded-full group-hover:opacity-40 transition-opacity duration-500 animate-pulse"></div>
+                <div className="relative bg-gradient-to-br from-indigo-50 to-blue-50 dark:from-gray-800 dark:to-gray-700 p-6 rounded-full shadow-inner border border-white/50 dark:border-gray-600">
+                  <FiMessageCircle className="text-6xl text-indigo-500 dark:text-indigo-400 group-hover:scale-110 transition-transform duration-500 ease-out" />
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 font-sans tracking-tight">Your Messages</h3>
+              <p className="text-gray-500 dark:text-gray-400 text-center max-w-sm text-base leading-relaxed">
+                Select a chat from the sidebar or start a new conversation to begin messaging.
+              </p>
             </div>
           )}
         </div>

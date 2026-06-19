@@ -1,14 +1,70 @@
 import React, { useEffect, useState, useRef, useContext } from "react";
 import {
+  FiX,
   FiChevronLeft,
   FiChevronRight,
-  FiSend,
-  FiEye,
+  FiHeart,
+  FiMessageCircle,
   FiTrash2,
+  FiEye,
+  FiPlus,
+  FiSend,
   FiArrowLeft,
 } from "react-icons/fi";
 import { AiOutlineHeart, AiFillHeart } from "react-icons/ai";
 import { AuthContext } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
+// --- Sub-component to render clickable text in Story ---
+const StoryText = ({ text, onCloseStory }) => {
+  const navigate = useNavigate();
+  const { api } = useContext(AuthContext);
+
+  const handleMentionClick = async (username, e) => {
+    e.stopPropagation();
+    try {
+      const { data } = await api.get(`/api/user/username/${username}`);
+      if (data.success) {
+        if (onCloseStory) onCloseStory();
+        navigate(`/friendprofile/${data.userId}`);
+      } else {
+        toast.error("User not found");
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const handleHashtagClick = (hashtag, e) => {
+    e.stopPropagation();
+    if (onCloseStory) onCloseStory();
+    navigate(`/discover?search=${encodeURIComponent(hashtag)}`);
+  };
+
+  const renderText = () => {
+    if (!text) return null;
+    const parts = text.split(/(#[a-zA-Z0-9_]+|@[a-zA-Z0-9_]+)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith("#")) {
+        return (
+          <span key={index} onMouseDown={(e) => handleHashtagClick(part, e)} onTouchStart={(e) => handleHashtagClick(part, e)} className="text-blue-400 font-medium cursor-pointer hover:underline">
+            {part}
+          </span>
+        );
+      } else if (part.startsWith("@")) {
+        return (
+          <span key={index} onMouseDown={(e) => handleMentionClick(part.substring(1), e)} onTouchStart={(e) => handleMentionClick(part.substring(1), e)} className="text-purple-400 font-bold cursor-pointer hover:underline">
+            {part}
+          </span>
+        );
+      }
+      return part;
+    });
+  };
+
+  return <>{renderText()}</>;
+};
 
 const StoryViewer = ({
   story,
@@ -25,11 +81,33 @@ const StoryViewer = ({
   viewersList,
   closeViewers,
 }) => {
-  const { handleLikeStory, handleStoryComment, timeAgo } = useContext(AuthContext);
+  const { handleLikeStory, handleStoryComment, timeAgo, profileData, api, fetchAllStories } = useContext(AuthContext);
   const [progress, setProgress] = useState(0);
   const [liked, setLiked] = useState(false);
   const [comment, setComment] = useState("");
   const [showUserInfo, setShowUserInfo] = useState(true);
+  const [isResharing, setIsResharing] = useState(false);
+
+  const isOwnStory = story.user?._id === loggedInUserId;
+  const isMentioned = story.caption?.content?.includes(`@${profileData?.username}`);
+
+  const handleReshare = async (e) => {
+    e.stopPropagation();
+    setIsResharing(true);
+    try {
+      const { data } = await api.post(`/api/story/${story._id}/reshare`);
+      if (data.success) {
+        toast.success(data.message);
+        if (fetchAllStories) fetchAllStories();
+      } else {
+        toast.error(data.message);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to reshare story");
+    } finally {
+      setIsResharing(false);
+    }
+  };
 
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
@@ -73,7 +151,6 @@ const StoryViewer = ({
     setLiked(story.likes?.some((obj) => obj.user === loggedInUserId) || false);
   }, [story, loggedInUserId]);
 
-  const isOwnStory = story.user?._id === loggedInUserId;
   const canShowPrev = totalStories?.length > 1 && currentIndex > 0;
   const canShowNext =
     totalStories?.length > 1 && currentIndex < totalStories.length - 1;
@@ -117,8 +194,8 @@ const StoryViewer = ({
             </span>
             <div className="flex items-center space-x-2 bg-black/20 px-3 py-1.5 rounded-full backdrop-blur-sm pointer-events-auto">
               <img
-                src={user.profile}
-                alt={user.name}
+                src={user?.profile || user?.profile_pic || user?.profilePic || "https://via.placeholder.com/150"}
+                alt={user?.name || "User"}
                 className="w-8 h-8 rounded-full border-2 border-white/80"
               />
               <span className="text-white font-bold text-sm truncate drop-shadow-md">
@@ -183,7 +260,7 @@ const StoryViewer = ({
           {story.caption && (
             <div
               // We added w-64, text-center, and the text sizing classes from your Composer textarea!
-              className="absolute z-20 w-64 text-center text-2xl sm:text-3xl font-semibold leading-tight whitespace-pre-wrap"
+              className="absolute z-20 w-64 text-center text-2xl sm:text-3xl font-semibold leading-tight whitespace-pre-wrap pointer-events-auto"
               style={{
                 left: story.caption.position.x,
                 top: story.caption.position.y,
@@ -194,7 +271,7 @@ const StoryViewer = ({
                 textShadow: "0 2px 8px rgba(0,0,0,0.5)",
               }}
             >
-              {story.caption.content}
+              <StoryText text={story.caption.content} onCloseStory={onClose} />
             </div>
           )}
           {/* 👇 UPDATED EMOJI BLOCK */}
@@ -262,41 +339,55 @@ const StoryViewer = ({
         {/* Bottom: Like + Comment */}
         {!isOwnStory ? (
           <div 
-            className="absolute bottom-6 sm:bottom-4 left-0 right-0 z-50 px-4 sm:px-4 flex items-center gap-3"
+            className="absolute bottom-6 sm:bottom-4 left-0 right-0 z-50 px-4 sm:px-4 flex flex-col gap-3"
             onClick={(e) => e.stopPropagation()}
             onTouchStart={(e) => e.stopPropagation()}
           >
-            <button
-              onClick={() => handleLikeStory(story._id, liked, setLiked)}
-              className="p-3 sm:p-2 rounded-full bg-black/40 hover:bg-black/60 transition backdrop-blur-sm"
-            >
-              {liked ? (
-                <AiFillHeart className="w-6 h-6 sm:w-6 sm:h-6 text-red-500" />
-              ) : (
-                <AiOutlineHeart className="w-6 h-6 sm:w-6 sm:h-6 text-white" />
-              )}
-            </button>
+            {isMentioned && (
+              <div className="flex justify-center mb-1">
+                <button
+                  onClick={handleReshare}
+                  disabled={isResharing}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-full font-bold shadow-2xl flex items-center gap-2 transition transform hover:scale-105 backdrop-blur-md"
+                >
+                  <FiPlus className="w-5 h-5" />
+                  {isResharing ? "Adding..." : "Add this to your story"}
+                </button>
+              </div>
+            )}
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => handleLikeStory(story._id, liked, setLiked)}
+                className="p-3 sm:p-2 rounded-full bg-black/40 hover:bg-black/60 transition backdrop-blur-sm"
+              >
+                {liked ? (
+                  <AiFillHeart className="w-6 h-6 sm:w-6 sm:h-6 text-red-500" />
+                ) : (
+                  <AiOutlineHeart className="w-6 h-6 sm:w-6 sm:h-6 text-white" />
+                )}
+              </button>
 
-            <div className="flex flex-1 bg-black/40 backdrop-blur-sm rounded-full overflow-hidden border border-white/10">
-              <input
-                type="text"
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder="Send a message..."
-                className="flex-1 px-4 py-3 sm:py-2 bg-transparent text-white placeholder-gray-300 focus:outline-none text-sm"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleStoryComment(story._id, comment, setComment);
-                  }
-                }}
-              />
+              <div className="flex flex-1 bg-black/40 backdrop-blur-sm rounded-full overflow-hidden border border-white/10">
+                <input
+                  type="text"
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  placeholder="Send a message..."
+                  className="flex-1 px-4 py-3 sm:py-2 bg-transparent text-white placeholder-gray-300 focus:outline-none text-sm"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleStoryComment(story._id, comment, setComment);
+                    }
+                  }}
+                />
+              </div>
+              <button
+                onClick={() => handleStoryComment(story._id, comment, setComment)}
+                className="p-3 sm:p-2 transition bg-indigo-500 hover:bg-indigo-600 rounded-full text-white shadow-lg"
+              >
+                <FiSend className="w-5 h-5 sm:w-5 sm:h-5" />
+              </button>
             </div>
-            <button
-              onClick={() => handleStoryComment(story._id, comment, setComment)}
-              className="p-3 sm:p-2 transition bg-indigo-500 hover:bg-indigo-600 rounded-full text-white shadow-lg"
-            >
-              <FiSend className="w-5 h-5 sm:w-5 sm:h-5" />
-            </button>
           </div>
         ) : (
           <div 

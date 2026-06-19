@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { FiHeart, FiMessageCircle, FiUserPlus, FiCheck } from "react-icons/fi";
+import { FiHeart, FiMessageCircle, FiUserPlus, FiCheck, FiBell, FiAtSign } from "react-icons/fi";
 import {useNavigate} from 'react-router-dom'
+import StoryViewerContainer from '../components/StoryViewerContainer';
 
 const Notifications = () => {
-    const { token, timeAgo, handleFollowAction, connections, api } = useContext(AuthContext);
+    const { token, timeAgo, handleFollowAction, connections, api, stories } = useContext(AuthContext);
     const navigate = useNavigate();
     const [notifications, setNotifications] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [viewingStory, setViewingStory] = useState(null);
 
     useEffect(() => {
         const fetchNotifications = async (isInitial = false) => {
@@ -54,7 +56,9 @@ const Notifications = () => {
             case 'like_comment':
             case 'comment':  
             case 'reply':
-                navigate(`/post/${notif.post}`);
+            case 'mention_post':
+            case 'mention':
+                navigate(`/post/${typeof notif.post === 'object' ? notif.post._id : notif.post}`);
                 break;
 
             case 'follow_accept':  
@@ -62,11 +66,17 @@ const Notifications = () => {
 
             case 'like_story':
             case 'comment_story':
-                // Because the story viewer is likely a modal triggered by state in another component,
-                // you have two options here:
-                // Option 1: Route them to the user's profile where they can click the avatar to see the story.
-                navigate(`/friendprofile/${notif.sender._id}`);
-                // Option 2 (Advanced): Fire a global Context function like `openStoryViewer(notif.post_id)`
+            case 'mention_story':
+                // Check if the sender has an active story
+                const activeStoryGroup = stories?.find(
+                    (group) => (group.user.id || group.user._id) === notif.sender._id
+                );
+                if (activeStoryGroup) {
+                    setViewingStory(activeStoryGroup);
+                } else {
+                    // Fallback if the story expired but the notification was clicked
+                    navigate(`/friendprofile/${notif.sender._id}`);
+                }
                 break;
 
             case 'follow':
@@ -107,6 +117,9 @@ const Notifications = () => {
                                 {['follow_accept', 'follow_reject'].includes(notif.type) && (
                                     <div className="p-2 bg-green-100 text-green-500 rounded-full"><FiCheck size={16} /></div>
                                 )}
+                                {['mention_post', 'mention_story', 'mention'].includes(notif.type) && (
+                                    <div className="p-2 bg-indigo-100 text-indigo-500 rounded-full"><FiAtSign size={16} /></div>
+                                )}
                             </div>
 
                             {/* --- 2. Content (Middle) --- */}
@@ -115,10 +128,25 @@ const Notifications = () => {
 
                                     {/* Left Side: Avatar and Text */}
                                     <div className="flex items-start space-x-3">
-                                        <img src={notif.sender.profile}
-                                            alt={notif.sender.name}
-                                            className="w-10 h-10 rounded-full object-cover border border-gray-200 shrink-0"
-                                        />
+                                        <div 
+                                            className={`rounded-full p-[2px] shrink-0 transition-transform duration-200 ${
+                                                stories?.some((group) => (group.user.id || group.user._id) === notif.sender._id)
+                                                  ? "bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-500 cursor-pointer hover:scale-105" 
+                                                  : "bg-transparent"
+                                            }`}
+                                            onClick={(e) => {
+                                                const activeStoryGroup = stories?.find((group) => (group.user.id || group.user._id) === notif.sender._id);
+                                                if (activeStoryGroup) {
+                                                    e.stopPropagation(); // prevent triggering the full notification click
+                                                    setViewingStory(activeStoryGroup);
+                                                }
+                                            }}
+                                        >
+                                            <img src={notif.sender.profile}
+                                                alt={notif.sender.name}
+                                                className="w-10 h-10 rounded-full object-cover border-2 border-white dark:border-gray-800 bg-white shrink-0"
+                                            />
+                                        </div>
                                         <div>
                                             <p className="text-sm text-gray-800 dark:text-gray-100">
                                                 <span className="font-bold mr-1">{notif.sender.name}</span>
@@ -131,6 +159,9 @@ const Notifications = () => {
                                                 {notif.type === 'follow_reject' && "rejected your follow request."}
                                                 {notif.type === 'like_story' && "liked your story.❤️"}
                                                 {notif.type === 'comment_story' && "commented on your story.💬"}
+                                                {notif.type === 'mention' && "mentioned you."}
+                                                {notif.type === 'mention_post' && "mentioned you in a post."}
+                                                {notif.type === 'mention_story' && "mentioned you in a story."}
                                             </p>
                                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">@{notif.sender.username}</p>
                                         </div>
@@ -183,14 +214,29 @@ const Notifications = () => {
                         </div>
                     ))
                 ) : (
-                    <div className="p-4 text-center text-gray-500 dark:text-gray-400">
-                        <div className="mx-auto w-12 h-12 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mb-3">
-                            <FiHeart className="text-gray-400" size={24} />
+                    <div className="flex flex-col items-center justify-center py-20 px-4 bg-white dark:bg-gray-800 transition-colors duration-200">
+                        <div className="relative mb-6 group cursor-default">
+                            <div className="absolute inset-0 bg-gradient-to-tr from-pink-400 to-red-500 blur-2xl opacity-20 dark:opacity-30 rounded-full group-hover:opacity-40 transition-opacity duration-500 animate-pulse"></div>
+                            <div className="relative bg-gradient-to-br from-red-50 to-pink-50 dark:from-gray-800 dark:to-gray-700 p-6 rounded-full shadow-inner border border-white/50 dark:border-gray-600">
+                                <FiBell className="text-5xl text-pink-500 dark:text-pink-400 group-hover:scale-110 transition-transform duration-500 ease-out" />
+                            </div>
                         </div>
-                        <p>No notifications yet</p>
+                        <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 font-sans tracking-tight">No Notifications</h3>
+                        <p className="text-gray-500 dark:text-gray-400 text-center max-w-sm text-base leading-relaxed">
+                            When someone interacts with your posts or follows you, you'll see it here.
+                        </p>
                     </div>
                 )}
             </div>
+            {/* Story Viewer Modal Overlay */}
+            {viewingStory && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50">
+                    <StoryViewerContainer 
+                        storiesData={[viewingStory]} 
+                        onClose={() => setViewingStory(null)} 
+                    />
+                </div>
+            )}
         </div>
     );
 };

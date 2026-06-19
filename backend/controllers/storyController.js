@@ -1,5 +1,6 @@
 import Notification from "../models/NotificationModel.js";
 import Story from "../models/StoryModel.js";
+import User from "../models/UserModel.js";
 import { v2 as cloudinary } from "cloudinary";
 import catchAsync from "../utils/catchAsync.js";
 
@@ -66,6 +67,19 @@ const createStory = catchAsync(async (req, res, next) => {
       imageSettings,
     });
 
+    if (caption && caption.content) {
+      const mentions = caption.content.match(/@\w+/g);
+      if (mentions) {
+        const uniqueUsernames = [...new Set(mentions.map(m => m.substring(1)))];
+        for (const username of uniqueUsernames) {
+          const mentionedUser = await User.findByUsername(username);
+          if (mentionedUser && mentionedUser.id !== userId) {
+            await Notification.create(mentionedUser.id, userId, "mention_story", newStoryId);
+          }
+        }
+      }
+    }
+
     res.json({ success: true, message: "Story created successfully 🎉", storyId: newStoryId });
 });
 
@@ -87,6 +101,35 @@ const deleteStory = catchAsync(async (req, res, next) => {
 
     await Story.delete(storyId);
     res.json({ success: true, message: "Story deleted successfully" });
+});
+
+// ✅ Reshare a story (when mentioned)
+const reshareStory = catchAsync(async (req, res, next) => {
+    const { storyId } = req.params;
+    const { userId } = req;
+
+    const story = await Story.findById(storyId);
+    if (!story) return res.json({ success: false, message: "Story not found" });
+
+    // Parse existing properties
+    const caption = typeof story.caption === 'string' ? JSON.parse(story.caption) : story.caption;
+    const emojis = typeof story.emojis === 'string' ? JSON.parse(story.emojis) : story.emojis;
+    const music = typeof story.music === 'string' ? JSON.parse(story.music) : story.music;
+    const imageSettings = typeof story.image_settings === 'string' ? JSON.parse(story.image_settings) : story.image_settings;
+
+    const newStoryId = await Story.create({
+      userId,
+      mediaUrl: story.media_url,
+      mediaType: story.media_type,
+      cloudinaryId: "", // Empty so it doesn't delete the original image
+      caption,
+      emojis,
+      music,
+      backgroundColor: story.background_color,
+      imageSettings,
+    });
+
+    res.json({ success: true, message: "Story added to your profile! 🎉", storyId: newStoryId });
 });
 
 // ✅ Get stories of user and their following/friends
@@ -198,11 +241,12 @@ const getViewers = catchAsync(async (req, res, next) => {
 export { 
   createStory, 
   deleteStory, 
+  reshareStory,
   getStories, 
-  markStoryViewed, 
   toggleLikeStory, 
-  getStoryLikes, 
   addComment, 
+  getStoryLikes, 
   getComments, 
+  markStoryViewed, 
   getViewers 
 };

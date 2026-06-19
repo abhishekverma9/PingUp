@@ -43,7 +43,7 @@ const UserRow = ({ user, onCloseModal }) => {
 
   const getButtonClass = () => {
     if (followState === "follow")
-      return "text-xs font-semibold py-1 px-3 rounded-full transition-all duration-300 shadow-sm bg-blue-500 text-white hover:bg-blue-600";
+      return "text-xs font-semibold py-1 px-3 rounded-full transition-all duration-300 bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:opacity-90 shadow-lg shadow-purple-200 dark:shadow-none";
     if (followState === "pending")
       return "text-xs font-semibold py-1 px-3 rounded-full transition-all duration-300 shadow-sm bg-yellow-400 text-white hover:opacity-90";
     if (followState === "following")

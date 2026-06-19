@@ -15,8 +15,8 @@ const StoryFeature = () => {
       <div onClick={onClick} className="flex flex-col items-center cursor-pointer group">
         <div className="bg-gradient-to-tr from-purple-500 to-pink-500 p-[2px] rounded-full">
           <img
-            src={firstStory?.user.profile || "https://via.placeholder.com/150"}
-            alt={storyGroup.user.name}
+            src={firstStory?.user?.profile || firstStory?.user?.profile_pic || firstStory?.user?.profilePic || "https://via.placeholder.com/150"}
+            alt={storyGroup.user?.name || "User"}
             className="w-16 h-16 rounded-full object-cover border-2 border-gray-900 group-hover:scale-105 transition-transform"
           />
         </div>
@@ -39,7 +39,7 @@ const StoryFeature = () => {
           alt="Create Story"
           className="w-16 h-16 rounded-full object-cover border-2 border-gray-900"
         />
-        <div className="absolute bottom-0 right-0 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center border-2 border-gray-900">
+        <div className="absolute bottom-0 right-0 w-5 h-5 bg-gradient-to-tr from-purple-500 to-blue-500 rounded-full flex items-center justify-center border-2 border-gray-900">
           <FaPlus className="text-white text-xs" />
         </div>
       </div>

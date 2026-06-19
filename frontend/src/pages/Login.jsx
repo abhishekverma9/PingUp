@@ -43,7 +43,7 @@ const Login = () => {
         }
       }
     } catch (error) {
-      toast.error(error.message)
+      toast.error(error.response?.data?.message || error.message)
     }
   };
   const handleGoogleSuccess = async (credentialResponse) => {
@@ -59,7 +59,7 @@ const Login = () => {
         toast.error(data.message);
       }
     } catch (error) {
-      toast.error("Google authentication failed.");
+      toast.error(error.response?.data?.message || "Google authentication failed.")
     }
   };
   return (

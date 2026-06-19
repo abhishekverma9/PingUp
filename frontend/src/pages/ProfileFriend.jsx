@@ -1,4 +1,5 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef, useCallback } from "react";
+import { FiLoader } from "react-icons/fi";
 import {
   FiCheckCircle,
   FiMapPin,
@@ -48,7 +49,7 @@ const ProfileHeader = ({ friendProfile, friendId, hasStory, onProfilePicClick, o
   
   const getButtonClass = () => {
     if (followState === "follow")
-      return "flex items-center gap-2 rounded-full py-1 px-4 md:px-6 md:py-2 text-sm font-semibold transition bg-blue-500 text-white hover:bg-blue-600";
+      return "flex items-center gap-2 rounded-full py-1 px-4 md:px-6 md:py-2 text-sm font-semibold transition bg-gradient-to-r from-purple-500 to-blue-500 text-white hover:opacity-90 shadow-lg shadow-purple-200 dark:shadow-none";
     if (followState === "pending")
       return "flex items-center gap-2 rounded-full py-1 px-4 md:px-6 md:py-2 text-sm font-semibold transition bg-yellow-200 text-white hover:bg-yellow-300";
     if (followState === "following")
@@ -142,10 +143,33 @@ const FriendProfilePage = () => {
   
   const [viewingStory, setViewingStory] = useState(null);
 
+  const [friendPostsCursor, setFriendPostsCursor] = useState(null);
+  const [hasMoreFriendPosts, setHasMoreFriendPosts] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const observer = useRef();
+
+  const lastPostElementRef = useCallback(node => {
+    if (isLoadingMore || !hasMoreFriendPosts) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(async entries => {
+      if (entries[0].isIntersecting && hasMoreFriendPosts) {
+        setIsLoadingMore(true);
+        const nextCursor = await getPostsByFriend(friendId, friendPostsCursor);
+        setFriendPostsCursor(nextCursor);
+        setHasMoreFriendPosts(nextCursor !== null);
+        setIsLoadingMore(false);
+      }
+    }, { threshold: 1.0 });
+    if (node) observer.current.observe(node);
+  }, [isLoadingMore, hasMoreFriendPosts, friendPostsCursor, friendId, getPostsByFriend]);
+
   useEffect(() => {
     if (token) {
         getFriendProfileData(friendId)
-        getPostsByFriend(friendId)
+        getPostsByFriend(friendId).then(nextCursor => {
+            setFriendPostsCursor(nextCursor);
+            setHasMoreFriendPosts(nextCursor !== null);
+        });
         fetchFriendConnections(friendId).then(data => {
             if (data) setFriendConnections(data);
         });

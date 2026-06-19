@@ -36,10 +36,18 @@ const App = () => {
           draggable
           pauseOnHover
           theme="colored"
-        toastClassName={() => 
-          "relative flex p-1 min-h-10 rounded-full justify-between overflow-hidden cursor-pointer shadow-xl mt-4 mx-4 sm:mx-auto max-w-[90vw] sm:max-w-sm border border-white/20"
+        toastClassName={(context) => 
+          `relative flex min-h-10 rounded-xl items-center justify-between overflow-hidden cursor-pointer shadow-2xl mt-4 mx-4 sm:mx-auto max-w-[90vw] sm:max-w-sm border border-gray-200 dark:border-gray-700 backdrop-blur-lg ${
+            context?.type === 'error' ? 'bg-red-100 dark:bg-red-900/50' :
+            context?.type === 'success' ? 'bg-green-100 dark:bg-green-900/50' :
+            'bg-white dark:bg-gray-800'
+          }`
         }
-        bodyClassName={() => "text-sm font-semibold block p-3 px-2 text-white"}
+        bodyClassName={(context) => `flex-1 break-words whitespace-pre-wrap text-sm font-medium p-3 pl-4 pr-2 ${
+          context?.type === 'error' ? 'text-red-800 dark:text-red-200' :
+          context?.type === 'success' ? 'text-green-800 dark:text-green-200' :
+          'text-gray-800 dark:text-gray-100'
+        }`}
         />
         {/* optional loader */}
         {/* <p style={{ textAlign: "center", marginTop: "2rem" }}>Loading...</p> */}
@@ -59,10 +67,18 @@ const App = () => {
         draggable
         pauseOnHover
         theme="colored"
-        toastClassName={() => 
-          "relative flex p-1 min-h-10 rounded-full justify-between overflow-hidden cursor-pointer shadow-xl mt-4 mx-4 sm:mx-auto max-w-[90vw] sm:max-w-sm border border-white/20"
+        toastClassName={(context) => 
+          `relative flex min-h-10 rounded-xl items-center justify-between overflow-hidden cursor-pointer shadow-2xl mt-4 mx-4 sm:mx-auto max-w-[90vw] sm:max-w-sm border border-gray-200 dark:border-gray-700 backdrop-blur-lg ${
+            context?.type === 'error' ? 'bg-red-100 dark:bg-red-900/50' :
+            context?.type === 'success' ? 'bg-green-100 dark:bg-green-900/50' :
+            'bg-white dark:bg-gray-800'
+          }`
         }
-        bodyClassName={() => "text-sm font-semibold block p-3 px-2 text-white"}
+        bodyClassName={(context) => `flex-1 break-words whitespace-pre-wrap text-sm font-medium p-3 pl-4 pr-2 ${
+          context?.type === 'error' ? 'text-red-800 dark:text-red-200' :
+          context?.type === 'success' ? 'text-green-800 dark:text-green-200' :
+          'text-gray-800 dark:text-gray-100'
+        }`}
       />
       <Routes>
         <Route element={<Layout />}>

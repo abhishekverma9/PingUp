@@ -94,27 +94,51 @@ const Post = {
     // Note: Due to ON DELETE CASCADE in your schema, this automatically deletes likes/comments.
   },
 
-  getFeed: async (userId) => {
+  updateCaption: async (postId, caption) => {
+    await pool.query("UPDATE posts SET caption = ? WHERE id = ?", [caption, postId]);
+  },
+
+  getFeed: async (userId, limit = 10, cursor = null) => {
     // Fetches posts by the user AND anyone they are following (accepted status)
-    const query = `
+    let query = `
       ${Post._baseSelectQuery}
-      WHERE p.user_id = ? 
+      WHERE (p.user_id = ? 
          OR p.user_id IN (
            SELECT followed_id FROM follows WHERE follower_id = ? AND status = 'accepted'
-         )
-      ORDER BY p.created_at DESC
+         ))
     `;
-    const [rows] = await pool.query(query, [userId, userId]);
+    
+    const params = [userId, userId];
+    
+    if (cursor) {
+      query += ` AND p.created_at < ?`;
+      params.push(cursor);
+    }
+    
+    query += ` ORDER BY p.created_at DESC LIMIT ?`;
+    params.push(Number(limit));
+
+    const [rows] = await pool.query(query, params);
     return rows;
   },
 
-  getUserPosts: async (userId) => {
-    const query = `
+  getUserPosts: async (userId, limit = 10, cursor = null) => {
+    let query = `
       ${Post._baseSelectQuery}
       WHERE p.user_id = ?
-      ORDER BY p.created_at DESC
     `;
-    const [rows] = await pool.query(query, [userId]);
+    
+    const params = [userId];
+    
+    if (cursor) {
+      query += ` AND p.created_at < ?`;
+      params.push(cursor);
+    }
+    
+    query += ` ORDER BY p.created_at DESC LIMIT ?`;
+    params.push(Number(limit));
+
+    const [rows] = await pool.query(query, params);
     return rows;
   },
 

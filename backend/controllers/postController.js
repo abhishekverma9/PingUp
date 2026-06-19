@@ -29,6 +29,19 @@ const createPost = catchAsync(async (req, res, next) => {
       mediaType,
     });
 
+    if (caption) {
+      const mentions = caption.match(/@\w+/g);
+      if (mentions) {
+        const uniqueUsernames = [...new Set(mentions.map(m => m.substring(1)))];
+        for (const username of uniqueUsernames) {
+          const mentionedUser = await User.findByUsername(username);
+          if (mentionedUser && mentionedUser.id !== userId) {
+            await Notification.create(mentionedUser.id, userId, "mention_post", newPost._id);
+          }
+        }
+      }
+    }
+
     res.json({ success: true, message: "Post created successfully", post: newPost });
 });
 const getSinglePost = catchAsync(async (req, res, next) => {
@@ -44,12 +57,15 @@ const getSinglePost = catchAsync(async (req, res, next) => {
 });
 const getFeedPosts = catchAsync(async (req, res, next) => {
     const { userId } = req; 
+    const { cursor = null, limit = 5 } = req.query;
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    const posts = await Post.getFeed(userId);
+    const cursorDate = cursor ? new Date(cursor) : null;
+    const posts = await Post.getFeed(userId, limit, cursorDate);
+    const nextCursor = posts.length > 0 ? posts[posts.length - 1].createdAt : null;
 
     // mysql2 usually parses JSON functions automatically, but as a fallback map:
     const formattedPosts = posts.map(p => ({
@@ -60,15 +76,18 @@ const getFeedPosts = catchAsync(async (req, res, next) => {
       shares: typeof p.shares === 'string' ? JSON.parse(p.shares) : (p.shares || [])
     }));
 
-    res.json({ success: true, data: formattedPosts });
+    res.json({ success: true, data: formattedPosts, nextCursor });
 });
 
 const getAllPostsByMe = catchAsync(async (req, res, next) => {
     const { userId } = req;
+    const { cursor = null, limit = 5 } = req.query;
     const user = await User.findById(userId);
     if (!user) return res.json({ success: false, message: "User not found" });
 
-    const posts = await Post.getUserPosts(userId);
+    const cursorDate = cursor ? new Date(cursor) : null;
+    const posts = await Post.getUserPosts(userId, limit, cursorDate);
+    const nextCursor = posts.length > 0 ? posts[posts.length - 1].createdAt : null;
     const formattedPosts = posts.map(p => ({
       ...p,
       user: typeof p.user === 'string' ? JSON.parse(p.user) : p.user,
@@ -76,15 +95,18 @@ const getAllPostsByMe = catchAsync(async (req, res, next) => {
       comments: typeof p.comments === 'string' ? JSON.parse(p.comments) : p.comments,
       shares: typeof p.shares === 'string' ? JSON.parse(p.shares) : (p.shares || [])
     }));
-    res.json({ success: true, posts: formattedPosts });
+    res.json({ success: true, posts: formattedPosts, nextCursor });
 });
 
 const getAllPostsByfriend = catchAsync(async (req, res, next) => {
     const { friendId } = req.params;
+    const { cursor = null, limit = 5 } = req.query;
     const user = await User.findById(friendId);
     if (!user) return res.json({ success: false, message: "User not found" });
 
-    const posts = await Post.getUserPosts(friendId);
+    const cursorDate = cursor ? new Date(cursor) : null;
+    const posts = await Post.getUserPosts(friendId, limit, cursorDate);
+    const nextCursor = posts.length > 0 ? posts[posts.length - 1].createdAt : null;
     const formattedPosts = posts.map(p => ({
       ...p,
       user: typeof p.user === 'string' ? JSON.parse(p.user) : p.user,
@@ -92,7 +114,7 @@ const getAllPostsByfriend = catchAsync(async (req, res, next) => {
       comments: typeof p.comments === 'string' ? JSON.parse(p.comments) : p.comments,
       shares: typeof p.shares === 'string' ? JSON.parse(p.shares) : (p.shares || [])
     }));
-    res.json({ success: true, posts: formattedPosts });
+    res.json({ success: true, posts: formattedPosts, nextCursor });
 });
 
 const deletePost = catchAsync(async (req, res, next) => {
@@ -109,6 +131,22 @@ const deletePost = catchAsync(async (req, res, next) => {
     await Post.delete(postId);
 
     res.json({ success: true, message: "Post deleted successfully" });
+});
+
+const editPost = catchAsync(async (req, res, next) => {
+    const { postId, newCaption } = req.body;
+    const { userId } = req;
+
+    const post = await Post.findById(postId);
+    if (!post) return res.json({ success: false, message: "Post not found" });
+
+    if (post.user !== userId) {
+      return res.json({ success: false, message: "Not Allowed" });
+    }
+
+    await Post.updateCaption(postId, newCaption);
+
+    res.json({ success: true, message: "Post updated successfully" });
 });
 
 const likePost = catchAsync(async (req, res, next) => {
@@ -194,4 +232,4 @@ const getPostSharers = catchAsync(async (req, res, next) => {
     res.json({ success: true, sharers });
 });
  
-export { createPost, getFeedPosts, likePost, sharePost, getPostSharers, deletePost, getAllPostsByMe, getAllPostsByfriend,getSinglePost };
+export { createPost, getFeedPosts, getAllPostsByMe, getAllPostsByfriend, deletePost, editPost, likePost, getSinglePost, sharePost, getPostSharers };

@@ -93,21 +93,21 @@ const Settings = () => {
             label: "Password & Security",
             description: "Keep your account locked down",
             icon: <FiLock size={20} />,
-            color: "text-blue-600 bg-blue-50 border-blue-100",
+            color: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 border-blue-100 dark:border-blue-800",
         },
         {
             key: "sessions",
             label: "Active Sessions",
             description: "Manage logged-in devices",
             icon: <FiMonitor size={20} />,
-            color: "text-emerald-600 bg-emerald-50 border-emerald-100",
+            color: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30 border-emerald-100 dark:border-emerald-800",
         },
         {
             key: "theme",
             label: "Appearance",
             description: "Light / dark preferences",
             icon: <FiMoon size={20} />,
-            color: "text-purple-600 bg-purple-50 border-purple-100",
+            color: "text-purple-600 dark:text-purple-400 bg-purple-50 dark:bg-purple-900/30 border-purple-100 dark:border-purple-800",
         },
     ];
 
@@ -143,25 +143,25 @@ const Settings = () => {
                             </p>
                         </div>
                         <div className="grid grid-cols-3 gap-3 text-center">
-                            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg py-3 px-4 transition-colors">
-                                <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">{sessions.length}</p>
-                                <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-700/50 dark:to-gray-800/50 border border-blue-100/50 dark:border-gray-700 rounded-xl py-3 px-4 shadow-sm hover:shadow-md transition-all duration-300">
+                                <p className="text-xl font-bold text-blue-600 dark:text-blue-400">{sessions.length}</p>
+                                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mt-1">
                                     Devices
                                 </p>
                             </div>
-                            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg py-3 px-4 transition-colors">
-                                <p className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                            <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-gray-700/50 dark:to-gray-800/50 border border-emerald-100/50 dark:border-gray-700 rounded-xl py-3 px-4 shadow-sm hover:shadow-md transition-all duration-300">
+                                <p className="text-xl font-bold text-emerald-600 dark:text-emerald-400">
                                     {preferences.twoFA ? "On" : "Off"}
                                 </p>
-                                <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mt-1">
                                     2FA
                                 </p>
                             </div>
-                            <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg py-3 px-4 transition-colors">
-                                <p className="text-lg font-semibold capitalize text-gray-900 dark:text-gray-100">
+                            <div className="bg-gradient-to-br from-purple-50 to-fuchsia-50 dark:from-gray-700/50 dark:to-gray-800/50 border border-purple-100/50 dark:border-gray-700 rounded-xl py-3 px-4 shadow-sm hover:shadow-md transition-all duration-300">
+                                <p className="text-xl font-bold capitalize text-purple-600 dark:text-purple-400">
                                     {preferences.theme}
                                 </p>
-                                <p className="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                                <p className="text-[10px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mt-1">
                                     Theme
                                 </p>
                             </div>
@@ -180,9 +180,9 @@ const Settings = () => {
                                     <button
                                         key={tab.key}
                                         onClick={() => setActiveTab(tab.key)}
-                                        className={`w-full flex items-start gap-3 p-3 rounded-lg transition-all border ${isActive
-                                            ? "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800/50 shadow-sm"
-                                            : "border-transparent hover:bg-gray-50 dark:hover:bg-gray-700"
+                                        className={`w-full flex items-start gap-3 p-3.5 rounded-xl transition-all duration-300 border hover:-translate-y-0.5 hover:shadow-sm ${isActive
+                                            ? "bg-gradient-to-r from-blue-50 to-transparent dark:from-blue-900/20 dark:to-transparent border-blue-200 dark:border-blue-800/50 shadow-sm"
+                                            : "border-transparent hover:bg-white dark:hover:bg-gray-700"
                                             }`}
                                     >
                                         <div
@@ -216,8 +216,12 @@ const Settings = () => {
 
                         {/* Mobile placeholder when nothing selected */}
                         {!activeTab && (
-                            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 text-gray-500 dark:text-gray-400 md:hidden transition-colors">
-                                Choose a setting to view.
+                            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 p-10 text-center flex flex-col items-center justify-center md:hidden transition-all duration-300">
+                                <div className="w-16 h-16 bg-gradient-to-tr from-blue-100 to-purple-100 dark:from-gray-700 dark:to-gray-600 rounded-full flex items-center justify-center mb-4 border border-blue-200 dark:border-gray-500 shadow-inner">
+                                    <FiMonitor className="text-2xl text-blue-500 dark:text-blue-400" />
+                                </div>
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">Settings Overview</h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 max-w-[200px]">Select a category from the menu to manage your preferences.</p>
                             </div>
                         )}
 
