@@ -60,6 +60,31 @@ const AudioCall = ({ currentUserId, otherUserId, onClose }) => {
     return () => socket.off("callAccepted", handleCallAccepted);
   }, [socket, peerObj]);
 
+  // ✅ Ringtone Logic
+  useEffect(() => {
+    let ringtoneAudio = null;
+
+    if (!callAccepted) {
+      if (incomingCall && incomingCall.type === "audio") {
+        ringtoneAudio = new Audio("/sounds/incoming-ring.mp3");
+      } else if (!incomingCall) {
+        ringtoneAudio = new Audio("/sounds/outgoing-ring.mp3");
+      }
+
+      if (ringtoneAudio) {
+        ringtoneAudio.loop = true;
+        ringtoneAudio.play().catch((err) => console.log("Audio autoplay blocked:", err));
+      }
+    }
+
+    return () => {
+      if (ringtoneAudio) {
+        ringtoneAudio.pause();
+        ringtoneAudio.currentTime = 0;
+      }
+    };
+  }, [callAccepted, incomingCall]);
+
   // ✅ Timer Logic
   useEffect(() => {
     let interval;

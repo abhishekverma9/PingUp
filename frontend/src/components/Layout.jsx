@@ -32,7 +32,7 @@ const Layout = () => {
   const shouldHideSidebar = isHideSidebarRoute || !isKnownRoute;
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       {/* ===== Sidebar Section ===== */}
       {!shouldHideSidebar && (
         <>
@@ -77,7 +77,7 @@ const Layout = () => {
       )}
 
       {/* ===== Main Content Section ===== */}
-      <main className="flex-1 w-full overflow-x-hidden">
+      <main className="flex-1 w-full overflow-x-hidden overflow-y-auto min-w-0">
         <Outlet />
       </main>
 

@@ -295,9 +295,9 @@ const MessagesPage = () => {
     console.log("All Users:", users);
   }, [users]);
   return (
-    <div className="w-full h-[100dvh] flex font-sans bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+    <div className="w-full h-[100dvh] flex font-sans bg-gray-50 dark:bg-gray-900 transition-colors duration-200 overflow-hidden">
       {(!isMobile || !isChatOpen) && (
-        <div className="md:w-1/3 w-full border-r border-gray-100 dark:border-gray-800 flex flex-col relative bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl z-10">
+        <div className="md:w-1/3 w-full min-w-0 border-r border-gray-100 dark:border-gray-800 flex flex-col relative bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl z-10">
           <h2 className="text-2xl font-extrabold p-6 border-b border-gray-100 dark:border-gray-800 dark:text-gray-100 bg-white/50 dark:bg-gray-900/50 backdrop-blur-md sticky top-0 z-10 flex items-center gap-3">
             {isMobile && (
               <button onClick={() => window.location.href = '/'} className="text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 transition-colors mt-1">
@@ -420,10 +420,10 @@ const MessagesPage = () => {
         </div>
       )}
       {(!isMobile || isChatOpen) && (
-        <div className={`flex flex-col ${isMobile ? "absolute w-full top-0 left-0 h-[100dvh] bg-white dark:bg-gray-900 z-50" : "w-2/3"}`}>
+        <div className={`flex flex-col overflow-hidden ${isMobile ? "absolute w-full top-0 left-0 h-[100dvh] bg-white dark:bg-gray-900 z-50" : "flex-1 min-w-0"}`}>
           {selectedChat ? (
             <>
-              <div className="p-3 pr-4 md:px-6 pt-4 md:pt-3 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl sticky top-0 z-20 shadow-sm">
+              <div className="p-3 pr-4 md:px-6 pt-4 md:pt-3 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl sticky top-0 z-20 shadow-sm flex-shrink-0">
                 <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
                   {isMobile && (
                     <button
@@ -492,7 +492,7 @@ const MessagesPage = () => {
                   </div>
                 </div>
               </div>
-              <div ref={chatRef} className="flex-grow p-6 overflow-y-auto flex flex-col space-y-6 bg-[#f8fafc] dark:bg-[#111827] chat-background scroll-smooth transition-colors duration-200">
+              <div ref={chatRef} className="flex-grow p-4 md:p-6 overflow-y-auto flex flex-col space-y-6 bg-[#f8fafc] dark:bg-[#111827] chat-background scroll-smooth transition-colors duration-200 min-h-0">
                 {messages.map((msg, index) => {
                   const isSender = msg.sender._id === user.userId;
                   const messageDate = new Date(msg.createdAt);
@@ -594,7 +594,7 @@ const MessagesPage = () => {
                   )}
                 </div>
               </div>
-              <div className="p-4 pb-4 md:pb-4 bg-transparent flex flex-col gap-2 relative z-20">
+              <div className="p-3 md:p-4 pb-3 md:pb-4 bg-transparent flex flex-col gap-2 relative z-20 flex-shrink-0">
                 {/* File Preview */}
                 {file && (
                   <div className="relative rounded-xl self-start ml-4 bg-white dark:bg-gray-800 p-2 shadow-md border border-gray-100 dark:border-gray-700">
@@ -619,8 +619,8 @@ const MessagesPage = () => {
                 )}
 
                 {/* Floating Message Input */}
-                <div className="flex items-center gap-3 bg-white dark:bg-gray-800 p-2 px-4 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] border border-gray-100 dark:border-gray-700 mx-2 mb-2 transition-all">
-                  <div className="relative flex items-center">
+                <div className="flex items-center gap-2 md:gap-3 bg-white dark:bg-gray-800 p-2 px-3 md:px-4 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] border border-gray-100 dark:border-gray-700 mx-1 md:mx-2 mb-1 md:mb-2 transition-all">
+                  <div className="relative flex items-center flex-shrink-0">
                     <FiSmile
                       className="w-6 h-6 text-gray-400 cursor-pointer hover:text-indigo-500 transition-colors"
                       onClick={() => setShowEmojiPicker(prev => !prev)}
@@ -634,7 +634,7 @@ const MessagesPage = () => {
                   <input
                     type="text"
                     placeholder="Type a message..."
-                    className="flex-grow bg-transparent text-gray-900 dark:text-gray-100 px-2 py-2 focus:outline-none placeholder-gray-400 font-medium"
+                    className="flex-grow min-w-0 bg-transparent text-gray-900 dark:text-gray-100 px-2 py-2 focus:outline-none placeholder-gray-400 font-medium"
                     value={messageText}
                     onChange={(e) => {
                       setMessageText(e.target.value);
@@ -649,13 +649,13 @@ const MessagesPage = () => {
                     onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
                   />
 
-                  <div className="flex items-center gap-2 border-l border-gray-200 dark:border-gray-700 pl-3">
-                    <label className="cursor-pointer p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                  <div className="flex items-center gap-2 border-l border-gray-200 dark:border-gray-700 pl-2 md:pl-3 flex-shrink-0">
+                    <label className="cursor-pointer p-1.5 md:p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                       <FiImage className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                       <input type="file" className="hidden" onChange={(e) => setFile(e.target.files[0])} />
                     </label>
                     <div
-                      className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 p-2.5 rounded-full cursor-pointer transition-transform hover:scale-105 shadow-md flex items-center justify-center"
+                      className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 p-2.5 rounded-full cursor-pointer transition-transform hover:scale-105 shadow-md flex items-center justify-center flex-shrink-0"
                       onClick={handleSendMessage}
                     >
                       <FiSend className="w-5 h-5 text-white transform -translate-x-[1px] translate-y-[1px]" />
