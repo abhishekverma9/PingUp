@@ -18,21 +18,24 @@ const VideoCall = ({ currentUserId, otherUserId, onClose }) => {
   const localVideoRef = useRef();
   const remoteVideoRef = useRef();
 
-  // Get camera + mic stream
+  const streamRef = useRef(null);
+
+  // Get camera + mic stream ONLY if we are the caller, otherwise wait until Answer is clicked
   useEffect(() => {
-    let streamRef = null;
-    navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      .then(stream => {
-        setLocalStream(stream);
-        streamRef = stream;
-        if (localVideoRef.current) localVideoRef.current.srcObject = stream;
-      })
-      .catch(err => console.error("Error accessing camera/microphone:", err));
+    if (!incomingCall) {
+      navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        .then(stream => {
+          setLocalStream(stream);
+          streamRef.current = stream;
+          if (localVideoRef.current) localVideoRef.current.srcObject = stream;
+        })
+        .catch(err => console.error("Error accessing camera/microphone:", err));
+    }
 
     return () => {
       // Cleanup tracks on unmount
-      if (streamRef) {
-        streamRef.getTracks().forEach(track => track.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
       }
       if (peerRef.current) {
         peerRef.current.destroy();
@@ -137,9 +140,25 @@ const VideoCall = ({ currentUserId, otherUserId, onClose }) => {
     });
   };
 
-  const handleAnswerCall = () => {
+  const handleAnswerCall = async () => {
     setCallAccepted(true);
-    const peer = new Peer({ initiator: false, trickle: false, stream: localStream });
+
+    let currentStream = localStream;
+    
+    // If we are answering, we haven't requested the camera/mic yet
+    if (!currentStream) {
+      try {
+        currentStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        setLocalStream(currentStream);
+        streamRef.current = currentStream;
+        if (localVideoRef.current) localVideoRef.current.srcObject = currentStream;
+      } catch (err) {
+        console.error("Error accessing camera/microphone on answer:", err);
+        return;
+      }
+    }
+
+    const peer = new Peer({ initiator: false, trickle: false, stream: currentStream });
     setPeerObj(peer);
     peerRef.current = peer;
 
@@ -157,8 +176,8 @@ const VideoCall = ({ currentUserId, otherUserId, onClose }) => {
   };
 
   const handleEndCall = () => {
-    if (localStream) {
-      localStream.getTracks().forEach(track => track.stop());
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
     }
     if (peerRef.current) peerRef.current.destroy();
     endCall(otherUserId);

@@ -15,21 +15,24 @@ const AudioCall = ({ currentUserId, otherUserId, onClose }) => {
   const localAudioRef = useRef();
   const remoteAudioRef = useRef();
 
-  // Get microphone stream
+  const streamRef = useRef(null);
+
+  // Get microphone stream ONLY if we are the caller, otherwise wait until Answer is clicked
   useEffect(() => {
-    let streamRef = null;
-    navigator.mediaDevices.getUserMedia({ audio: true })
-      .then(stream => {
-        setLocalStream(stream);
-        streamRef = stream;
-        if (localAudioRef.current) localAudioRef.current.srcObject = stream;
-      })
-      .catch(err => console.error("Error accessing microphone:", err));
+    if (!incomingCall) {
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          setLocalStream(stream);
+          streamRef.current = stream;
+          if (localAudioRef.current) localAudioRef.current.srcObject = stream;
+        })
+        .catch(err => console.error("Error accessing microphone:", err));
+    }
 
     return () => {
       // Cleanup tracks on unmount
-      if (streamRef) {
-        streamRef.getTracks().forEach(track => track.stop());
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
       }
       if (peerRef.current) {
         peerRef.current.destroy();
@@ -130,10 +133,26 @@ const AudioCall = ({ currentUserId, otherUserId, onClose }) => {
     });
   };
 
-  const handleAnswerCall = () => {
+  const handleAnswerCall = async () => {
     setCallAccepted(true);
+    
+    let currentStream = localStream;
+    
+    // If we are answering, we haven't requested the mic yet
+    if (!currentStream) {
+      try {
+        currentStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        setLocalStream(currentStream);
+        streamRef.current = currentStream;
+        if (localAudioRef.current) localAudioRef.current.srcObject = currentStream;
+      } catch (err) {
+        console.error("Error accessing microphone on answer:", err);
+        return;
+      }
+    }
+
     // We are answering the call
-    const peer = new Peer({ initiator: false, trickle: false, stream: localStream });
+    const peer = new Peer({ initiator: false, trickle: false, stream: currentStream });
     setPeerObj(peer);
     peerRef.current = peer;
 
@@ -154,8 +173,8 @@ const AudioCall = ({ currentUserId, otherUserId, onClose }) => {
   };
 
   const handleEndCall = () => {
-    if (localStream) {
-      localStream.getTracks().forEach(track => track.stop());
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
     }
     if (peerRef.current) peerRef.current.destroy();
     endCall(otherUserId);
