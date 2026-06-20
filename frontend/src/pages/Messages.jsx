@@ -7,10 +7,9 @@ import { AuthContext } from "../context/AuthContext";
 import { toast } from "react-toastify";
 import EmojiPicker from "../components/EmojiPicker";
 import VideoCall from "../components/VideoCall";
-import AudioCall from "../components/AudioCall";
 
 const MessagesPage = () => {
-  const { socket, onlineUsers } = useContext(SocketContext);
+  const { socket, onlineUsers, typingUsers, setOutgoingCall } = useContext(SocketContext);
   const { profileData, backendUrl, token, users, api, connections } = useContext(AuthContext);
   const user = profileData;
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -25,7 +24,6 @@ const MessagesPage = () => {
   const [chatSearch, setChatSearch] = useState("");
   const [newChatSearch, setNewChatSearch] = useState("");
   const [showVideoCall, setShowVideoCall] = useState(false);
-  const [showAudioCall, setShowAudioCall] = useState(false);
   const [isTyping, setIsTyping] = useState(false); // show typing indicator
   const typingTimeoutRef = useRef(null); // debounce timeout
   const chatRef = useRef();
@@ -423,7 +421,7 @@ const MessagesPage = () => {
         </div>
       )}
       {(!isMobile || isChatOpen) && (
-        <div className={`w-2/3 flex flex-col ${isMobile ? "absolute w-full top-0 left-0 h-[100dvh] bg-white dark:bg-gray-900 z-50" : ""}`}>
+        <div className={`flex flex-col ${isMobile ? "absolute w-full top-0 left-0 h-[100dvh] bg-white dark:bg-gray-900 z-50" : "w-2/3"}`}>
           {selectedChat ? (
             <>
               <div className="p-3 pr-4 md:px-6 pt-4 md:pt-3 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl sticky top-0 z-20 shadow-sm">
@@ -472,7 +470,13 @@ const MessagesPage = () => {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 md:gap-4 text-gray-500 dark:text-gray-400 flex-shrink-0">
-                  <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" onClick={() => setShowAudioCall(true)}>
+                  <div 
+                    className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" 
+                    onClick={() => {
+                      const receiverId = selectedChat.user1._id === user.userId ? selectedChat.user2._id : selectedChat.user1._id;
+                      setOutgoingCall({ type: "audio", to: receiverId });
+                    }}
+                  >
                     <FiPhone className="w-5 h-5 text-gray-700 dark:text-gray-200" />
                   </div>
                   <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" onClick={() => setShowVideoCall(true)}>
@@ -679,13 +683,7 @@ const MessagesPage = () => {
           onClose={() => setShowVideoCall(false)}
         />
       )}
-      {showAudioCall && selectedChat && (
-        <AudioCall
-          currentUserId={user.userId}
-          otherUserId={selectedChat.user1._id === user.userId ? selectedChat.user2._id : selectedChat.user1._id}
-          onClose={() => setShowAudioCall(false)}
-        />
-      )}
+
     </div>
   );
 };

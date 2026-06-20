@@ -7,7 +7,7 @@ import { assets } from "../assets/assets";
 import { AuthContext } from "../context/AuthContext";
 import DarkModeToggle from "./DarkModeToggle";
 
-const Sidebar = () => {
+const Sidebar = ({ onClose }) => {
   const navItems = [
     { name: "Feed", icon: <FaHome className="h-5 w-5" />, path: "/" },
     { name: "Messages", icon: <FaEnvelope className="h-5 w-5" />, path: "/messages" },
@@ -35,15 +35,24 @@ const Sidebar = () => {
             <li key={item.name} className={item.hideOnMobile ? "hidden md:block" : ""}>
               <NavLink
                 to={item.path}
+                onClick={() => onClose && onClose()}
                 className={({ isActive }) =>
-                  `flex items-center gap-4 p-3 rounded-lg transition-all duration-200 ${isActive
-                    ? "bg-blue-100 text-blue-600 font-semibold dark:bg-blue-900/30 dark:text-blue-400"
-                    : "text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+                  `flex items-center justify-between p-3 rounded-lg transition-all duration-200 hover:scale-[1.02] ${
+                    isActive
+                      ? "bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-md font-semibold"
+                      : "text-gray-500 hover:bg-gray-100 hover:text-gray-800 dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
                   }`
                 }
               >
-                {item.icon}
-                <span>{item.name}</span>
+                <div className="flex items-center gap-4">
+                  {item.icon}
+                  <span>{item.name}</span>
+                </div>
+                {item.badge && (
+                  <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                    {item.badge}
+                  </span>
+                )}
               </NavLink>
             </li>
           ))}
@@ -59,21 +68,38 @@ const Sidebar = () => {
       </div>
 
       {/* User Profile Section */}
-      <div className="flex items-center justify-between mt-auto pt-5 border-t border-gray-200 dark:border-gray-800">
-        <div onClick={() => navigate('/profile')} className="flex items-center gap-3">
-          <img
-            className="h-10 w-10 rounded-full object-cover"
-            src={profileData.profile}
-            alt="User avatar"
-          />
-          <div>
-            <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm">{profileData.name}</p>
-            <p className="text-gray-500 dark:text-gray-400 text-xs">@{profileData.username}</p>
+      <div className="mt-auto pt-5 border-t border-gray-200 dark:border-gray-800">
+        <div 
+          className="flex items-center justify-between p-2 -mx-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer group"
+        >
+          <div 
+            onClick={() => {
+              navigate('/profile');
+              if (onClose) onClose();
+            }} 
+            className="flex items-center gap-3 flex-1"
+          >
+            <img
+              className="h-10 w-10 rounded-full object-cover shadow-sm group-hover:ring-2 group-hover:ring-purple-400 transition-all"
+              src={profileData.profile}
+              alt="User avatar"
+            />
+            <div>
+              <p className="font-semibold text-gray-800 dark:text-gray-200 text-sm">{profileData.name}</p>
+              <p className="text-gray-500 dark:text-gray-400 text-xs">@{profileData.username}</p>
+            </div>
           </div>
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              logout();
+            }} 
+            className="p-2 text-gray-400 hover:text-red-500 dark:hover:text-red-400 transition-colors rounded-full hover:bg-red-50 dark:hover:bg-red-900/20"
+            title="Log Out"
+          >
+            <FaSignOutAlt className="h-5 w-5" />
+          </button>
         </div>
-        <button onClick={logout} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-          <FaSignOutAlt className="h-6 w-6" />
-        </button>
       </div>
     </div>
   );

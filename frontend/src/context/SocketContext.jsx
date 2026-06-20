@@ -9,7 +9,8 @@ const SocketContextProvider = ({ children }) => {
     const [socket, setSocket] = useState(null);
     const [onlineUsers, setOnlineUsers] = useState([]);
     const [typingUsers, setTypingUsers] = useState({});
-    const [incomingCall, setIncomingCall] = useState(null);  
+    const [incomingCall, setIncomingCall] = useState(null);
+    const [outgoingCall, setOutgoingCall] = useState(null);
     const user = profileData;
 
     useEffect(() => {
@@ -40,13 +41,14 @@ const SocketContextProvider = ({ children }) => {
             newSocket.on("incomingCall", ({ from, signalData, callType }) => {
                 setIncomingCall({ type: callType, from, signalData });
             }); 
-            newSocket.on("callAccepted", ({ from, signalData }) => {
-                console.log("✅ Call accepted by:", from);
+            newSocket.on("callAccepted", (signalData) => {
+                console.log("✅ Call accepted");
                 // Complete WebRTC handshake here in your component
             }); 
             newSocket.on("callEnded", ({ userId }) => {
                 console.log("❌ Call ended by:", userId);
                 setIncomingCall(null);
+                setOutgoingCall(null);
             }); 
             
             // Cleanup
@@ -58,6 +60,7 @@ const SocketContextProvider = ({ children }) => {
                 setOnlineUsers([]);
                 setTypingUsers({});
                 setIncomingCall(null);
+                setOutgoingCall(null);
             }
         }
     }, [user, backendUrl]);
@@ -79,12 +82,13 @@ const SocketContextProvider = ({ children }) => {
 
     const answerCall = (callerId, signalData) => {
         socket?.emit("answerCall", { to: callerId, signal: signalData });
-        setIncomingCall(null);
+        // DO NOT setIncomingCall(null) here, otherwise the call UI will unmount!
     };
 
     const endCall = (userId) => {
         socket?.emit("endCall", { userId });
         setIncomingCall(null);
+        setOutgoingCall(null);
     };
 
     const value = {
@@ -92,6 +96,9 @@ const SocketContextProvider = ({ children }) => {
         onlineUsers,
         typingUsers,
         incomingCall,
+        setIncomingCall,
+        outgoingCall,
+        setOutgoingCall,
         sendMessage,
         emitTyping,
         markAsDelivered,

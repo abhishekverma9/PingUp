@@ -7,20 +7,77 @@ const AudioCall = ({ currentUserId, otherUserId, onClose }) => {
   const { socket, incomingCall, answerCall, startCall, endCall } = useContext(SocketContext);
   const [callAccepted, setCallAccepted] = useState(false);
   const [peerObj, setPeerObj] = useState(null);
+  const peerRef = useRef(null);
   const [localStream, setLocalStream] = useState(null);
   const [isMuted, setIsMuted] = useState(false);
+  const [callDuration, setCallDuration] = useState(0);
 
   const localAudioRef = useRef();
   const remoteAudioRef = useRef();
 
   // Get microphone stream
   useEffect(() => {
+    let streamRef = null;
     navigator.mediaDevices.getUserMedia({ audio: true })
       .then(stream => {
         setLocalStream(stream);
+        streamRef = stream;
         if (localAudioRef.current) localAudioRef.current.srcObject = stream;
-      });
+      })
+      .catch(err => console.error("Error accessing microphone:", err));
+
+    return () => {
+      // Cleanup tracks on unmount
+      if (streamRef) {
+        streamRef.getTracks().forEach(track => track.stop());
+      }
+      if (peerRef.current) {
+        peerRef.current.destroy();
+      }
+    };
   }, []);
+
+  // ✅ Auto-call if we are the initiator (i.e., there is no incoming call)
+  useEffect(() => {
+    if (!incomingCall && localStream && !peerObj) {
+      handleCallUser();
+    }
+  }, [localStream, incomingCall]);
+
+  // ✅ Listen for the receiver accepting the call
+  useEffect(() => {
+    if (!socket) return;
+    
+    const handleCallAccepted = (signal) => {
+      setCallAccepted(true);
+      // Finalize the WebRTC connection by passing the receiver's signal to our peer
+      if (peerObj) {
+        peerObj.signal(signal);
+      }
+    };
+
+    socket.on("callAccepted", handleCallAccepted);
+    return () => socket.off("callAccepted", handleCallAccepted);
+  }, [socket, peerObj]);
+
+  // ✅ Timer Logic
+  useEffect(() => {
+    let interval;
+    if (callAccepted) {
+      interval = setInterval(() => {
+        setCallDuration((prev) => prev + 1);
+      }, 1000);
+    } else {
+      setCallDuration(0);
+    }
+    return () => clearInterval(interval);
+  }, [callAccepted]);
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+    const s = (seconds % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  };
 
   const toggleMute = () => {
     if (localStream) {
@@ -30,13 +87,19 @@ const AudioCall = ({ currentUserId, otherUserId, onClose }) => {
   };
 
   const handleCallUser = () => {
+    // We are initiating the call
     const peer = new Peer({ initiator: true, trickle: false, stream: localStream });
     setPeerObj(peer);
+    peerRef.current = peer;
 
+    peer.on("error", (err) => console.log("Peer error:", err));
+
+    // When our peer generates signal data, send it to the other user via socket
     peer.on("signal", (data) => {
       startCall("audio", otherUserId, data);
     });
 
+    // When we receive the other user's stream, play it
     peer.on("stream", (remoteStream) => {
       if(remoteAudioRef.current) remoteAudioRef.current.srcObject = remoteStream;
     });
@@ -44,17 +107,24 @@ const AudioCall = ({ currentUserId, otherUserId, onClose }) => {
 
   const handleAnswerCall = () => {
     setCallAccepted(true);
+    // We are answering the call
     const peer = new Peer({ initiator: false, trickle: false, stream: localStream });
     setPeerObj(peer);
+    peerRef.current = peer;
 
+    peer.on("error", (err) => console.log("Peer error:", err));
+
+    // When our peer generates signal data, send it back to the caller
     peer.on("signal", (data) => {
       answerCall(incomingCall.from, data);
     });
 
+    // When we receive the caller's stream, play it
     peer.on("stream", (remoteStream) => {
       if(remoteAudioRef.current) remoteAudioRef.current.srcObject = remoteStream;
     });
 
+    // Feed the caller's signal data into our peer to establish connection
     peer.signal(incomingCall.signalData);
   };
 
@@ -62,7 +132,7 @@ const AudioCall = ({ currentUserId, otherUserId, onClose }) => {
     if (localStream) {
       localStream.getTracks().forEach(track => track.stop());
     }
-    peerObj?.destroy();
+    if (peerRef.current) peerRef.current.destroy();
     endCall(otherUserId);
     onClose();
   };
@@ -82,8 +152,8 @@ const AudioCall = ({ currentUserId, otherUserId, onClose }) => {
           <FiPhone className="w-12 h-12 text-white" />
         </div>
         <h2 className="text-3xl font-bold text-white mb-2">Audio Call</h2>
-        <p className="text-indigo-200 text-lg">
-          {callAccepted ? "00:00" : (incomingCall && incomingCall.type === "audio" && !callAccepted ? "Incoming call..." : "Ringing...")}
+        <p className="text-indigo-200 text-lg font-mono">
+          {callAccepted ? formatTime(callDuration) : (incomingCall && incomingCall.type === "audio" && !callAccepted ? "Incoming call..." : "Ringing...")}
         </p>
       </div>
 

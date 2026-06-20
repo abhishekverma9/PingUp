@@ -108,6 +108,7 @@ const AuthContextProvider = (props) => {
             const isRefreshCall = originalRequest.url?.includes("/api/user/refresh");
             if (isRefreshCall) {
                 setToken("");
+                tokenRef.current = "";
                 return Promise.reject(error);
             }
 
@@ -118,13 +119,16 @@ const AuthContextProvider = (props) => {
                     if (refreshRes.data.success) {
                         const newToken = refreshRes.data.accessToken;
                         setToken(newToken); // Update state
+                        tokenRef.current = newToken; // ✅ Immediately update ref so reqInterceptor uses it!
                         originalRequest.headers.Authorization = `Bearer ${newToken}`;
                         return api(originalRequest);
                     } else {
                         setToken("");
+                        tokenRef.current = "";
                     }
                 } catch (refreshErr) {
                     setToken("");
+                    tokenRef.current = "";
                     return Promise.reject(refreshErr);
                 }
             }

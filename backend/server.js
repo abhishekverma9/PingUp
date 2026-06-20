@@ -141,6 +141,13 @@ io.on("connection", (socket) => {
     });
   });
 
+  socket.on("endCall", ({ userId: targetUserId }) => {
+    const targetSockets = onlineUsers[targetUserId] || [];
+    targetSockets.forEach(sockId => {
+      io.to(sockId).emit("callEnded", { userId });
+    });
+  });
+
   socket.on("disconnect", () => {
     console.log("🔴 User disconnected:", userId);
     if (userId && onlineUsers[userId]) {
