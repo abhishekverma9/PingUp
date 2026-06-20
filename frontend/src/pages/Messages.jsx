@@ -23,7 +23,6 @@ const MessagesPage = () => {
   const [showNewChatModal, setShowNewChatModal] = useState(false);
   const [chatSearch, setChatSearch] = useState("");
   const [newChatSearch, setNewChatSearch] = useState("");
-  const [showVideoCall, setShowVideoCall] = useState(false);
   const [isTyping, setIsTyping] = useState(false); // show typing indicator
   const typingTimeoutRef = useRef(null); // debounce timeout
   const chatRef = useRef();
@@ -479,7 +478,13 @@ const MessagesPage = () => {
                   >
                     <FiPhone className="w-5 h-5 text-gray-700 dark:text-gray-200" />
                   </div>
-                  <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" onClick={() => setShowVideoCall(true)}>
+                  <div 
+                    className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" 
+                    onClick={() => {
+                      const receiverId = selectedChat.user1._id === user.userId ? selectedChat.user2._id : selectedChat.user1._id;
+                      setOutgoingCall({ type: "video", to: receiverId });
+                    }}
+                  >
                     <FiVideo className="w-5 h-5 text-gray-700 dark:text-gray-200" />
                   </div>
                   <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-full cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
@@ -676,13 +681,7 @@ const MessagesPage = () => {
           )}
         </div>
       )}
-      {showVideoCall && selectedChat && (
-        <VideoCall
-          currentUserId={user.userId}
-          otherUserId={selectedChat.user1._id === user.userId ? selectedChat.user2._id : selectedChat.user1._id}
-          onClose={() => setShowVideoCall(false)}
-        />
-      )}
+
 
     </div>
   );

@@ -7,7 +7,9 @@ const VideoCall = ({ currentUserId, otherUserId, onClose }) => {
   const { socket, incomingCall, answerCall, startCall, endCall } = useContext(SocketContext);
   const [callAccepted, setCallAccepted] = useState(false);
   const [peerObj, setPeerObj] = useState(null);
+  const peerRef = useRef(null);
   const [localStream, setLocalStream] = useState(null);
+  const [callDuration, setCallDuration] = useState(0);
   
   // States for toggling mic/camera
   const [isMuted, setIsMuted] = useState(false);
@@ -18,12 +20,67 @@ const VideoCall = ({ currentUserId, otherUserId, onClose }) => {
 
   // Get camera + mic stream
   useEffect(() => {
+    let streamRef = null;
     navigator.mediaDevices.getUserMedia({ video: true, audio: true })
       .then(stream => {
         setLocalStream(stream);
+        streamRef = stream;
         if (localVideoRef.current) localVideoRef.current.srcObject = stream;
-      });
+      })
+      .catch(err => console.error("Error accessing camera/microphone:", err));
+
+    return () => {
+      // Cleanup tracks on unmount
+      if (streamRef) {
+        streamRef.getTracks().forEach(track => track.stop());
+      }
+      if (peerRef.current) {
+        peerRef.current.destroy();
+      }
+    };
   }, []);
+
+  // ✅ Auto-call if we are the initiator (i.e., there is no incoming call)
+  useEffect(() => {
+    if (!incomingCall && localStream && !peerObj) {
+      handleCallUser();
+    }
+  }, [localStream, incomingCall]);
+
+  // ✅ Listen for the receiver accepting the call
+  useEffect(() => {
+    if (!socket) return;
+    
+    const handleCallAccepted = (signal) => {
+      setCallAccepted(true);
+      // Finalize the WebRTC connection by passing the receiver's signal to our peer
+      if (peerObj) {
+        peerObj.signal(signal);
+      }
+    };
+
+    socket.on("callAccepted", handleCallAccepted);
+    return () => socket.off("callAccepted", handleCallAccepted);
+  }, [socket, peerObj]);
+
+  // ✅ Timer Logic
+  useEffect(() => {
+    let interval;
+    if (callAccepted) {
+      interval = setInterval(() => {
+        setCallDuration((prev) => prev + 1);
+      }, 1000);
+    } else {
+      setCallDuration(0);
+    }
+    return () => clearInterval(interval);
+  }, [callAccepted]);
+
+  const formatTime = (seconds) => {
+    const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+    const s = (seconds % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
+  };
 
   const toggleMute = () => {
     if (localStream) {
@@ -42,6 +99,9 @@ const VideoCall = ({ currentUserId, otherUserId, onClose }) => {
   const handleCallUser = () => {
     const peer = new Peer({ initiator: true, trickle: false, stream: localStream });
     setPeerObj(peer);
+    peerRef.current = peer;
+
+    peer.on("error", (err) => console.log("Peer error:", err));
 
     peer.on("signal", (data) => {
       startCall("video", otherUserId, data);
@@ -56,6 +116,9 @@ const VideoCall = ({ currentUserId, otherUserId, onClose }) => {
     setCallAccepted(true);
     const peer = new Peer({ initiator: false, trickle: false, stream: localStream });
     setPeerObj(peer);
+    peerRef.current = peer;
+
+    peer.on("error", (err) => console.log("Peer error:", err));
 
     peer.on("signal", (data) => {
       answerCall(incomingCall.from, data);
@@ -72,7 +135,7 @@ const VideoCall = ({ currentUserId, otherUserId, onClose }) => {
     if (localStream) {
       localStream.getTracks().forEach(track => track.stop());
     }
-    peerObj?.destroy();
+    if (peerRef.current) peerRef.current.destroy();
     endCall(otherUserId);
     onClose();
   };
@@ -92,6 +155,13 @@ const VideoCall = ({ currentUserId, otherUserId, onClose }) => {
           <p className="text-gray-400 text-lg">
             {incomingCall && incomingCall.type === "video" ? "Incoming video call..." : "Calling..."}
           </p>
+        </div>
+      )}
+
+      {/* Call Timer Overlay */}
+      {callAccepted && (
+        <div className="absolute top-8 right-8 bg-black/50 backdrop-blur-md px-4 py-2 rounded-lg border border-white/10 z-50 shadow-lg">
+          <p className="text-white font-mono text-lg">{formatTime(callDuration)}</p>
         </div>
       )}
 
