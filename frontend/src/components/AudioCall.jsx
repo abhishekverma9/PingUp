@@ -63,6 +63,18 @@ const AudioCall = ({ currentUserId, otherUserId, onClose }) => {
     return () => socket.off("callAccepted", handleCallAccepted);
   }, [socket, peerObj]);
 
+  // ✅ Auto-Hangup after 60 seconds if unanswered
+  useEffect(() => {
+    let timeout;
+    if (!callAccepted) {
+      timeout = setTimeout(() => {
+        console.log("Call timed out after 60 seconds.");
+        handleEndCall();
+      }, 60000);
+    }
+    return () => clearTimeout(timeout);
+  }, [callAccepted]);
+
   // ✅ Ringtone Logic
   useEffect(() => {
     let ringtoneAudio = null;
@@ -107,6 +119,17 @@ const AudioCall = ({ currentUserId, otherUserId, onClose }) => {
     return `${m}:${s}`;
   };
 
+  // ✅ Handle page refresh or closing tab
+  useEffect(() => {
+    const handleUnload = () => {
+      if (socket) {
+        socket.emit("endCall", { userId: otherUserId });
+      }
+    };
+    window.addEventListener("beforeunload", handleUnload);
+    return () => window.removeEventListener("beforeunload", handleUnload);
+  }, [socket, otherUserId]);
+
   const toggleMute = () => {
     if (localStream) {
       localStream.getAudioTracks()[0].enabled = !localStream.getAudioTracks()[0].enabled;
@@ -121,6 +144,10 @@ const AudioCall = ({ currentUserId, otherUserId, onClose }) => {
     peerRef.current = peer;
 
     peer.on("error", (err) => console.log("Peer error:", err));
+    peer.on("close", () => {
+      console.log("Peer connection closed.");
+      handleEndCall();
+    });
 
     // When our peer generates signal data, send it to the other user via socket
     peer.on("signal", (data) => {
@@ -157,6 +184,10 @@ const AudioCall = ({ currentUserId, otherUserId, onClose }) => {
     peerRef.current = peer;
 
     peer.on("error", (err) => console.log("Peer error:", err));
+    peer.on("close", () => {
+      console.log("Peer connection closed.");
+      handleEndCall();
+    });
 
     // When our peer generates signal data, send it back to the caller
     peer.on("signal", (data) => {
